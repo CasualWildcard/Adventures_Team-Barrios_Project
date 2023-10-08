@@ -1,7 +1,8 @@
-import gradio as gr
 import pandas as pd
 import os
-
+import gradio as gr
+from gradio.themes.base import Base
+from gradio.themes.utils import colors, fonts, sizes
 
 theme = gr.themes.Base(
     font=[gr.themes.GoogleFont('Montserrat'), 'ui-sans-serif', 'system-ui', 'sans-serif'],
@@ -27,10 +28,40 @@ theme = gr.themes.Base(
     button_primary_text_color_hover='#60a5fa',
     button_secondary_background_fill='#dbeafe'
 )
+#Manage Database catergory can be renamed
+def testss(category):
+    if "Tank Capacity" == category or "ISS Flight Plan Crew Nationality Lookup" == category or "ISS Flight Plan" == category:
+        one=gr.Textbox(interactive=True, visible=True)
+        two=gr.Textbox(interactive=True, visible=True)
+        three=gr.Textbox(interactive=True, visible=True)
+        four = gr.Textbox(interactive=True, visible=False)
+        five = gr.Textbox(interactive=True, visible=False)
+    elif "US Weekly Consumable Water Summary" == category:
+        one=gr.Textbox(interactive=True, visible=True)
+        two=gr.Textbox(interactive=True, visible=True)
+        three=gr.Textbox(interactive=True, visible=True)
+        four = gr.Textbox(interactive=True, visible=True)
+        five = gr.Textbox(interactive=True, visible=True)
+    elif "Thresholds/Limits" == category or "RS Weekly Consumable Water Summary" == category:
+        one=gr.Textbox(interactive=True, visible=True)
+        two=gr.Textbox(interactive=True, visible=True)
+        three=gr.Textbox(interactive=True, visible=True)
+        four = gr.Textbox(interactive=True, visible=True)
+        five = gr.Textbox(interactive=True, visible=False)
+    return(one,two,three,four,five)
 
-with gr.Blocks(theme=theme) as mockup:
+#does authentication with the login cookies must be enabled in your browser to make this happen
+def authentication(username,password):
+    auth_usernames = "test"
+    auth_passwords = "test"
+    if username == auth_usernames and password == auth_passwords:
+        return True
+    return False
+
+with gr.Blocks(theme=theme, title="Adventures") as mockup:
     with gr.Tab("Homepage"):
         homepage = gr.Label(value="Homepage")
+        wiki = gr.Button(value="Link to Wiki", link="https://github.com/CasualWildcard/Adventures_Team-Barrios_Project")
     with gr.Tab("Imports"):
         homepage = gr.Label(value="Upload CSV Files")
         gr.Button(value="SUBMIT CSV'S", size = "lg")
@@ -53,12 +84,35 @@ with gr.Blocks(theme=theme) as mockup:
     with gr.Tab("Manage Database"):
         manage = gr.Label(value="Manage Database")
         mdCategoryDropdown = gr.Dropdown(choices = ["Tank Capacity", "US/RS Weekly Consumable Gas Summary", "US Weekly Consumable Water Summary",
-"RS Weekly Consumable Water Summary", "IMS Consumables Category Lookup", "ISS Flight Plan Crew", "Rates Definition", "Thresholds/Limits",
-"ISS Flight Plan Crew Nationality Lookup", "Inventory Management System Consumables", "ISS Flight Plan", "Stored Items Only Inventory Management System Consumables"])
+                                                    "RS Weekly Consumable Water Summary", "IMS Consumables Category Lookup", "ISS Flight Plan Crew",
+                                                      "Rates Definition", "Thresholds/Limits","ISS Flight Plan Crew Nationality Lookup", 
+                                                      "Inventory Management System Consumables", "ISS Flight Plan", "Stored Items Only Inventory Management System Consumables"])
+        with gr.Row():# more can be added 
+            one = gr.Textbox(interactive=True, visible=False)
+            two = gr.Textbox(interactive=True, visible=False)
+            three = gr.Textbox(interactive=True, visible=False)
+            four = gr.Textbox(interactive=True, visible=False)
+            five = gr.Textbox(interactive=True, visible=False)
+            mdCategoryDropdown.input(fn=testss, inputs=[mdCategoryDropdown], outputs=[one,two,three,four,five])
+        with gr.Row():
+            ones = gr.Textbox(interactive=True, visible=False)
+            twos = gr.Textbox(interactive=True, visible=False)
+            threes = gr.Textbox(interactive=True, visible=False)
+            fours = gr.Textbox(interactive=True, visible=False)
+            fives = gr.Textbox(interactive=True, visible=False)
+            mdCategoryDropdown.input(fn=testss, inputs=[mdCategoryDropdown], outputs=[ones,twos,threes,fours,fives])
+        with gr.Row():
+            oness = gr.Textbox(interactive=True, visible=False)
+            twoss = gr.Textbox(interactive=True, visible=False)
+            threess = gr.Textbox(interactive=True, visible=False)
+            fourss = gr.Textbox(interactive=True, visible=False)
+            fivess = gr.Textbox(interactive=True, visible=False)
+            mdCategoryDropdown.input(fn=testss, inputs=[mdCategoryDropdown], outputs=[oness,twoss,threess,fourss,fivess])
+            
 
     with gr.Tab("View Analyses"):
         view = gr.Label(value="View Analyses")
-        aCategoryDropdown = gr.Dropdown(interactive= True,choices = ["Historical Assumptions VS Actual Usage", "Resupply Quantity Required", "Minimum Launch Vehicle Resupply Plan", "Minimun Supply Violation"])
+        aCategoryDropdown = gr.Dropdown(interactive= True,choices = ["Historical Assumptions VS Actual Usage", 
+                                                                     "Resupply Quantity Required", "Minimum Launch Vehicle Resupply Plan", "Minimun Supply Violation"])
 
-
-mockup.launch(share=True)
+mockup.launch(share=True, auth=authentication)#to turn off authentication just delete the auth part :)
