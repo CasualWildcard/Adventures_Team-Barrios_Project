@@ -4,6 +4,11 @@ import gradio as gr
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
 
+CSVHeaders = {
+    'tankCapacity' : ["Tank Category", "Tank Capacity", "Units"],
+    'ISSflightPlan' : ["Event Name", "Port Name", "Vehicle Type", "Date", "Eva Type"]
+}
+
 theme = gr.themes.Base(
     font=[gr.themes.GoogleFont('Montserrat'), 'ui-sans-serif', 'system-ui', 'sans-serif'],
     font_mono=[gr.themes.GoogleFont('sans-serif'), 'ui-monospace', 'Consolas', 'monospace'],
