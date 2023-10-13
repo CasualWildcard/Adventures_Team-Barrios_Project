@@ -1,0 +1,12 @@
+﻿nationality,is_usos_crew,is_rsa_crew
+"Commercial          ",0,0
+"CSA                 ",1,0
+"ESA                 ",1,0
+"JAXA                ",1,0
+"NASA                ",1,0
+"USOS                ",1,0
+"RSA                 ",0,1
+"ASI                 ",1,0
+"NASA, USOS        ",1,0
+"SFP                 ",0,1
+"TBD                 ",0,0

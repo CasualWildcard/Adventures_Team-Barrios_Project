@@ -1,0 +1,42 @@
+Field,Definition
+datedim,Date that data was extracted from the Primary Source database (IMS)
+id,Unique identifier for objects in the IMS database
+id_parent,Indicator of item hierarchy. Defines the ID of the object which is the parent of the current record
+id_path,"Shows full hierarchy of an item's parentage. Moving left to right, the numbers are IDs separated by a slash character, ending with the same digit string as the item's ID"
+tree_depth,"Indicates how many levels deep in the hierarchy an item is. Where ISS = level 0, modules = level 1, etc."
+tree,"Defines the segment of the IMS database that an item belongs to. Options: Storage Location, Trash, Lost, Return"
+part_number,"Partially unique identifier which denotes the type of item. Combined with serial_number, creates a unique field"
+serial_number,"Partially unique identifier which denotes the discrete item. Combined with part_number, creates a unique field"
+location_name,Location within the ISS assembly of a given object
+original_ip_owner,"Some items on ISS transfer ownership. This field denotes the original International Partner (IP) Owner, i.e. who owned the object when it first arrived at ISS"
+current_ip_owner,"Some items on ISS transfer ownership. This field denotes the current International Partner (IP) Owner, i.e. who owns the object currently"
+operational_nomenclature,Effectively = name; this field denotes the proper name of reference for engineering and logistics discussions about an object
+russian_name,Indicates the russian colloqueal name for an object
+english_name,Indicates the english colloqueal name for an object
+barcode,Partially unique object identifier used in RFID tracking of objects onboard ISS
+quantity,Indicates the unit quantity of a record
+width,Dimension in mm
+height,Dimension in mm
+length,Dimension in mm
+diameter,Dimension in mm
+calculated_volume,Volume calculated from dimensional values in units of Cargo Transfer Bag Equivalents (CTBe). Algorithm applied to use appropriate dimensional values when data is not optimal. 1.0 CTBe = 0.05285519 m^3
+stwg_ovrrd_vol,Override applied when items have known volume that does not match calculated volume
+children_volume,Sum of the volumes of all items which are direct children of a given object
+stwg_ovrrd_chldren_vol,Override applied when children items have known volume that does not match calculated volume
+ovrrd_notes,Explanation of applied overrides
+volume_notes,Explanation of volume calculation algorithm applied
+expire_date,"Date of expiration of a given resource, where applicable"
+launch,Indicates the vehicle that an object was delivered to ISS on
+type,"Indicates if an object is an item, container, location, module, etc."
+hazard,Indicates any hazardous properties of an item
+state,Indicates functional / non-functional state of an item
+status,"Indicates whether an object is Stowed, Installed, Discarded, or Returned"
+is_container,Indicates if an object can contain other objects
+is_moveable,Indicates if an object can be moved
+system,Indicates what ISS systems the object belongs to or contributes to
+subsystem,Indicates the ISS subsystem the object belongs to or contributes to
+action_date,Indicates the last time a given database record was changed
+move_date,Indicates the last time an object changed locations within the ISS
+fill_status,Coarse indication of a liquid container object's current usable contents
+categoryID,"ID associated with the tracking category an object belongs to (Food, EDV, KTO, etc.)"
+category_name,"Tracking category an object belongs to (Food, EDV, KTO, etc.)"
