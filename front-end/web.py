@@ -108,6 +108,10 @@ def authentication(username,password):
         return True
     return False
 
+def importCSV(csvdata):
+    data = pd.read_csv(csvdata.name)
+    return data
+
 with gr.Blocks(theme=theme, title="Adventures") as mockup:
     with gr.Tab("Homepage"):
         homepage = gr.Label(value="Homepage")
