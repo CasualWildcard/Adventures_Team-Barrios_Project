@@ -117,20 +117,20 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
         gr.Button(value="SUBMIT CSV'S", size = "lg")
         warningLabel = gr.Label(value = "Need to Submit all the CSV's Needed below!")
         with gr.Row():
-            csv1 = gr.File(file_types = [".csv","txt"], label = "Tank Capacity", interactive = True)
-            csv2 = gr.File(file_types = [".csv"], label = "US/RS Weekly Consumable Gas Summary", interactive = True)
-            csv3 = gr.File(file_types = [".csv"], label = "US Weekly Consumable Water Summary", interactive = True)
-            csv4 = gr.File(file_types = [".csv"], label = "RS Weekly Consumable Water Summary", interactive = True)
+            csv1 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Tank Capacity"), None)
+            csv2 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "US/RS Weekly Consumable Gas Summary", interactive = True), None)
+            csv3 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "US Weekly Consumable Water Summary", interactive = True), None)
+            csv4 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "RS Weekly Consumable Water Summary", interactive = True), None)
         with gr.Row():
-            csv5 = gr.File(file_types = [".csv"], label = "IMS Consumables", interactive = True)
-            csv6 = gr.File(file_types = [".csv"], label = "ISS Flight Plan Crew", interactive = True)
-            csv7 = gr.File(file_types = [".csv"], label = "Rates Definition", interactive = True)
-            csv8 = gr.File(file_types = [".csv"], label = "Thresholds/Limits", interactive = True)
+            csv5 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "IMS Consumables", interactive = True), None)
+            csv6 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "ISS Flight Plan Crew", interactive = True), None)
+            csv7 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Rates Definition", interactive = True), None)
+            csv8 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Thresholds/Limits", interactive = True), None)
         with gr.Row():
-            csv9 = gr.File(file_types = [".csv"], label = "ISS Flight Plan Crew Nationality Lookup", interactive = True)
-            csv10 = gr.File(file_types = [".csv"], label = "Inventory Management System Consumables", interactive = True)
-            csv11 = gr.File(file_types = [".csv"], label = "ISS Flight Plan", interactive = True)
-            csv12 = gr.File(file_types = [".csv"], label = "Stored Items Only Inventory Management System Consumables", interactive = True)
+            csv9 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "ISS Flight Plan Crew Nationality Lookup", interactive = True), None)
+            csv10 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Inventory Management System Consumables", interactive = True), None)
+            csv11 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "ISS Flight Plan", interactive = True), None)
+            csv12 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Stored Items Only Inventory Management System Consumables", interactive = True), None)
     with gr.Tab("Manage Database"):
         manage = gr.Label(value="Manage Database")
         mdCategoryDropdown = gr.Dropdown(choices = ["Tank Capacity", "US/RS Weekly Consumable Gas Summary", 
