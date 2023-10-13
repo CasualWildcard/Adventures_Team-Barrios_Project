@@ -1,0 +1,16 @@
+﻿threshold_category,threshold_value,threshold_owner,units
+ACY Insert,800,USOS,ACY Inserts
+KTO,22,USOS,KTO
+Pretreat Tanks,4,USOS,Pretreat Tanks
+Filter Inserts,4,USOS,Filter Inserts
+Urine Receptacle,4,USOS,Urine Receptacles
+EDVs,21,USOS,EDVs
+ACY Insert,239,RSOS,ACY Inserts
+KTO,6,RSOS,KTO
+Pretreat Tanks,1,RSOS,Pretreat Tanks
+Filter Inserts,4,RSOS,Filter Inserts
+Urine Receptacle,4,RSOS,Urine Receptacles
+O2 (Oxygen),402,,lbs
+N2 (Nitrogen),275,,lbs
+Water Alert,1088,USOS,Liters
+Water Critical,818,USOS,Liters
