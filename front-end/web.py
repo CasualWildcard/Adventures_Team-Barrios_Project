@@ -4,6 +4,20 @@ import gradio as gr
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
 
+CSVHeaders = {
+    'tankCapacity' : ["tank_category", "tank_capacity", "units"],
+    'issFlightPlan' : ["datedim", "vehicle_name", "port_name", "vehicle_type", "eva_name", "eva_type", "eva_accuracy", "event"],
+    'crewNationalityLookup' : ["nationality", "is_usos_crew", "is_rsa_crew"],
+    'ratesDefinition' : ["rate_category", "affected_consumable", "rate", "units", "type", "efficiency"],
+    'usWeeklyWaterSummary' : ["Date", "Corrected Potable (L)", "Corrected Technical  (L)", "Corrected Total (L)", "Resupply Potable (L)", "Resupply Technical (L)", "Corrected Predicted (L)", 'Unnamed: 7', 'Unnamed: 8'],
+    'IMS Consumables' : ["category_name", "categoryID", "module_name", "moduleID", "unique_cat_mod_ID"],
+    'issFlightPlanCrew' : ["datedim", "nationality_category", "crew_count"],
+    'thresholdLimits' : ["threshold_category", "threshold_value", "threshold_owner", "units"],
+    'rsaWeeklyWaterSummary' : ["Report Date", "Remain. Potable (liters)", "Remain. Technical (liters)", "Remain. Rodnik (liters)"],
+    'weeklyGasSummary' : ["Date", "USOS O2 (kg)", "RS O2 (kg)", "US N2 (kg)", "RS N2 (kg)", "Adjusted O2 (kg)", "Adjusted N2 (kg)", "Resupply O2 (kg)", "Resupply N2 (kg)", "Resupply Air (kg)"],
+    'storedItemsOnlyIMS' : ["datedim", "id", "id_parent", "id_path", "tree_depth", "tree", "part_number", "serial_number", "location_name", "original_ip_owner", "current_ip_owner", "operational_nomenclature", "russian_name", "english_name", "barcode", "quantity", "width", "height", "length", "diameter", "calculated_volume", "stwg_ovrrd_vol", "children_volume", "stwg_ovrrd_chldrn_vol", "ovrrd_notes", "volume_notes", "expire_date", "launch", "type", "hazard", "state", "status", "is_container", "is_moveable", "system", "subsystem", "action_date", "move_date", "fill_status", "categoryID", "category_name"]
+}
+
 theme = gr.themes.Base(
     font=[gr.themes.GoogleFont('Montserrat'), 'ui-sans-serif', 'system-ui', 'sans-serif'],
     font_mono=[gr.themes.GoogleFont('sans-serif'), 'ui-monospace', 'Consolas', 'monospace'],
@@ -109,8 +123,24 @@ def authentication(username,password):
     return False
 
 def importCSV(csvdata):
-    data = pd.read_csv(csvdata.name)
-    return data
+    outputTypes = [] # Debug list to ensure that the file is being read correctly
+    for csv in csvdata: # Iterate through all uploaded CSV files
+      try: # If the CSV is entirely blank, Pandas will throw an error. This catches it.
+        data = pd.read_csv(csv.name) # Imports CSV into a dataframe 'data'
+        if data.empty: # Makes sure there's data in the dataframe
+            outputTypes += ["Error: CSV file is empty or has no data."] # Can be replaced with proper error display later, does not account for null entries.
+        isValid = False
+        for key, value in CSVHeaders.items(): #Iterate through all valid data headers
+            if value == list(data.columns.values): #If CSV headers match a valid data header
+                # Replace next line with a function to pass the valid dataframe to the backend
+                outputTypes += [key]
+                isValid = True
+                break
+        if not isValid:        
+          outputTypes += ["Error: CSV does not match known data file types."] # Can be replaced with proper error display later
+      except pd.errors.EmptyDataError:
+          outputTypes += ["Error: CSV file is either completely blank or has no data."] # Can be replaced with proper error display later
+    return outputTypes
 
 with gr.Blocks(theme=theme, title="Adventures") as mockup:
     with gr.Tab("Homepage"):
@@ -121,20 +151,10 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
         gr.Button(value="SUBMIT CSV'S", size = "lg")
         warningLabel = gr.Label(value = "Need to Submit all the CSV's Needed below!")
         with gr.Row():
-            csv1 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Tank Capacity"), None)
-            csv2 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "US/RS Weekly Consumable Gas Summary", interactive = True), None)
-            csv3 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "US Weekly Consumable Water Summary", interactive = True), None)
-            csv4 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "RS Weekly Consumable Water Summary", interactive = True), None)
+            csv1 = gr.Interface(importCSV, gr.File(file_types = [".csv"], file_count = "multiple", label = "Tank Capacity"), "text")
         with gr.Row():
-            csv5 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "IMS Consumables", interactive = True), None)
-            csv6 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "ISS Flight Plan Crew", interactive = True), None)
-            csv7 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Rates Definition", interactive = True), None)
-            csv8 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Thresholds/Limits", interactive = True), None)
-        with gr.Row():
-            csv9 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "ISS Flight Plan Crew Nationality Lookup", interactive = True), None)
-            csv10 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Inventory Management System Consumables", interactive = True), None)
-            csv11 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "ISS Flight Plan", interactive = True), None)
-            csv12 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Stored Items Only Inventory Management System Consumables", interactive = True), None)
+            csv2 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Inventory Management System Consumables", interactive = True), None)
+            csv3 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Stored Items Only Inventory Management System Consumables", interactive = True), None)
     with gr.Tab("Manage Database"):
         manage = gr.Label(value="Manage Database")
         mdCategoryDropdown = gr.Dropdown(choices = ["Tank Capacity", "US/RS Weekly Consumable Gas Summary", 
@@ -193,4 +213,4 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
                                                                        "Minimum Launch Vehicle Resupply Plan",
                                                                          "Minimun Supply Violation"])
 
-mockup.launch(share=True, auth=authentication)#to turn off authentication just delete the auth part :)
+mockup.launch(share=True)#to turn off authentication just delete the auth part :)
