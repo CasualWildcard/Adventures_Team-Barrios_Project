@@ -148,10 +148,9 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
         wiki = gr.Button(value="Link to Wiki", link="https://github.com/CasualWildcard/Adventures_Team-Barrios_Project")
     with gr.Tab("Imports"):
         homepage = gr.Label(value="Upload CSV Files")
-        gr.Button(value="SUBMIT CSV'S", size = "lg")
-        warningLabel = gr.Label(value = "Need to Submit all the CSV's Needed below!")
+        # warningLabel = gr.Label(value = "Need to Submit all the CSV's Needed below!", scale=2)
         with gr.Row():
-            csv1 = gr.Interface(importCSV, gr.File(file_types = [".csv"], file_count = "multiple", label = "Tank Capacity"), "text")
+            csv1 = gr.Interface(importCSV, gr.File(file_types = [".csv"], file_count = "multiple", label = "Tank Capacity"), "text", allow_flagging='never')
         with gr.Row():
             csv2 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Inventory Management System Consumables", interactive = True), None)
             csv3 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Stored Items Only Inventory Management System Consumables", interactive = True), None)
