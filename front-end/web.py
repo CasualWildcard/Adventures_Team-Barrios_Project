@@ -143,6 +143,7 @@ def authentication(username,password):
 
 def importCSV(csvdata):
     outputTypes = [] # Debug list to ensure that the file is being read correctly
+    name = '../back-end/csvStorage/' # File name, taken from key in for loop below
     for csv in csvdata: # Iterate through all uploaded CSV files
       try: # If the CSV is entirely blank, Pandas will throw an error. This catches it.
         data = pd.read_csv(csv.name) # Imports CSV into a dataframe 'data'
@@ -154,9 +155,12 @@ def importCSV(csvdata):
                 # Replace next line with a function to pass the valid dataframe to the backend
                 outputTypes += [key]
                 isValid = True
+                name += key
                 break
         if not isValid:        
           outputTypes += ["Error: CSV does not match known data file types."] # Can be replaced with proper error display later
+        else:
+          data.to_csv(name)
       except pd.errors.EmptyDataError:
           outputTypes += ["Error: CSV file is either completely blank or has no data."] # Can be replaced with proper error display later
     return outputTypes
@@ -167,7 +171,7 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
         wiki = gr.Button(value="Link to Wiki", link="https://github.com/CasualWildcard/Adventures_Team-Barrios_Project")
     with gr.Tab("Imports"):
         homepage = gr.Label(value="Upload CSV Files")
-        # warningLabel = gr.Label(value = "Need to Submit all the CSV's Needed below!", scale=2)
+        # warningLabel = gr.Label(value = "Need to Submit all the CSV's Needed below!", scale=5)
         with gr.Row():
             csv1 = gr.Interface(importCSV, gr.File(file_types = [".csv"], file_count = "multiple", label = "Tank Capacity"), "text", allow_flagging='never')
         with gr.Row():
