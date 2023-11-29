@@ -18,6 +18,8 @@ CSVHeaders = {
     'storedItemsOnlyIMS' : ["datedim", "id", "id_parent", "id_path", "tree_depth", "tree", "part_number", "serial_number", "location_name", "original_ip_owner", "current_ip_owner", "operational_nomenclature", "russian_name", "english_name", "barcode", "quantity", "width", "height", "length", "diameter", "calculated_volume", "stwg_ovrrd_vol", "children_volume", "stwg_ovrrd_chldrn_vol", "ovrrd_notes", "volume_notes", "expire_date", "launch", "type", "hazard", "state", "status", "is_container", "is_moveable", "system", "subsystem", "action_date", "move_date", "fill_status", "categoryID", "category_name"]
 }
 
+availableDates = ["2023-08-01", "2023-09-01", "2023-10-01"]
+
 theme = gr.themes.Base(
     font=[gr.themes.GoogleFont('Montserrat'), 'ui-sans-serif', 'system-ui', 'sans-serif'],
     font_mono=[gr.themes.GoogleFont('sans-serif'), 'ui-monospace', 'Consolas', 'monospace'],
@@ -113,6 +115,23 @@ def updateColumns(category):
         sixthColumn = gr.Textbox(interactive=True, visible=False)
         seventhColumn = gr.Textbox(interactive=True, visible=False)
     return(buttonChange,firstColumn,secondColumn,thirdColumn,fourthColumn,fifthColumn,sixthColumn,seventhColumn)
+
+def displayAnalysisDateRange():
+    startDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
+    endDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
+    confirmDateButton = gr.Button(value="Confirm", show_label=False,visible=True)
+    return startDateCategoryDropdown, endDateCategoryDropdown, confirmDateButton
+
+def verifyDateRange(startDate, endDate):
+    viewAnalysisError = gr.Label(value="", show_label=False)
+    print(startDate)
+    if startDate <= endDate:
+        pass
+    elif startDate > endDate:
+        viewAnalysisError = gr.Label(value="Error: Start Date must be before End Date.", show_label=False)
+    elif startDate == [] or endDate == []:
+        viewAnalysisError = gr.Label(value="Error: One or both date values are empty.", show_label=False)
+    return viewAnalysisError
 
 #does authentication with the login cookies must be enabled in your browser to make this happen
 def authentication(username,password):
@@ -211,5 +230,12 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
                                                                      "Resupply Quantity Required",
                                                                        "Minimum Launch Vehicle Resupply Plan",
                                                                          "Minimun Supply Violation"])
+        with gr.Row():
+            startDateCategoryDropdown = gr.Dropdown(interactive=True, label="Start Date", visible=False, choices = availableDates)
+            endDateCategoryDropdown = gr.Dropdown(interactive=True, label="End Date", visible=False, choices = availableDates)
+        confirmDateButton = gr.Button(value="Confirm", show_label=False,visible=False)
+        viewAnalysisError = gr.Label(value="", show_label=False)
+        aCategoryDropdown.input(fn=displayAnalysisDateRange, outputs=[startDateCategoryDropdown,endDateCategoryDropdown, confirmDateButton])
+        confirmDateButton.click(fn=verifyDateRange, inputs=[startDateCategoryDropdown, endDateCategoryDropdown], outputs=[viewAnalysisError])
 
 mockup.launch(share=True)#to turn off authentication just delete the auth part :)
