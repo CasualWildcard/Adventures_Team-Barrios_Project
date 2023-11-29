@@ -143,7 +143,8 @@ def authentication(username,password):
 
 def importCSV(csvdata):
     outputTypes = [] # Debug list to ensure that the file is being read correctly
-    name = '../back-end/csvStorage/' # File name, taken from key in for loop below
+    name = 'back-end/csvStorage/' # File name, taken from key in for loop below
+    os.getcwd()
     for csv in csvdata: # Iterate through all uploaded CSV files
       try: # If the CSV is entirely blank, Pandas will throw an error. This catches it.
         data = pd.read_csv(csv.name) # Imports CSV into a dataframe 'data'
@@ -160,6 +161,7 @@ def importCSV(csvdata):
         if not isValid:        
           outputTypes += ["Error: CSV does not match known data file types."] # Can be replaced with proper error display later
         else:
+          name += '.csv'
           data.to_csv(name)
       except pd.errors.EmptyDataError:
           outputTypes += ["Error: CSV file is either completely blank or has no data."] # Can be replaced with proper error display later
