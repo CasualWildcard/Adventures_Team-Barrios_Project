@@ -4,11 +4,10 @@ import pandas as pd
 from datetime import datetime
 import os
 
-csvPath = r"back-end/csvStorage/"
+csvPath = r"../back-end/csvStorage/"
 
 def getDropDates():
-
-    data = pd.read_csv(csvPath + 'issFlightPlan') # change this to where the data is going to be imported
+    data = pd.read_csv(csvPath + 'issFlightPlan.csv') # change this to where the data is going to be imported
     data = data.copy(deep=True) # copies the data
     data.drop(data[data['event'] != "Dock"].index, inplace = True) # drops rows that does not have Dock in their event column
     data = data[["datedim"]] # gets just the datedim colun and puts it into data
@@ -29,7 +28,7 @@ def getDropDates():
 
 def modifyConsumables():
     # gets the consumables csv ofc need to change the read csv part :)
-    consumables = pd.read_csv(csvPath + 'IMSConsumables')
+    consumables = pd.read_csv(csvPath + 'IMSConsumables.csv')
     consumables = consumables.copy(deep=True)
 
     # since this data set does not have headers currently will place the headers with this :)
@@ -49,7 +48,7 @@ def modifyConsumables():
     return consumables
 
 def getFilledWaterData():
-    water = pd.read_csv(csvPath + 'usWeeklyWaterSummary')
+    water = pd.read_csv(csvPath + 'usWeeklyWaterSummary.csv')
     water = water.copy(deep=True)
 
     water = water[['Date','Corrected Total (L)']]
@@ -61,7 +60,7 @@ def getFilledWaterData():
 
 
 def getOxygenNitrogen():
-    data = pd.read_csv(csvPath + 'weeklyGasSummary')
+    data = pd.read_csv(csvPath + 'weeklyGasSummary.csv')
     data = data.copy(deep=True)
 
     data = data[['Date','Adjusted O2 (kg)','Adjusted N2 (kg)']]
@@ -75,7 +74,6 @@ def getOxygenNitrogen():
     return oxygen, nitrogen
 
 def compareRates():
-
     # copys the dropDates and puts it into dates
     dates = getDropDates()
     consumables = modifyConsumables()
@@ -210,9 +208,10 @@ def getActualUsageRates2(dataSet,dates):
     final['number_of_days'] = days
     final['Difference'] = difference
     final['rates'] = result        
-
+    return final
+    
 def calculateCurrentRate():
-    data = pd.read_csv(csvPath + 'ratesDefinition') # needs to be changed
+    data = pd.read_csv(csvPath + 'ratesDefinition.csv') # needs to be changed
     data = data.copy(deep=True)
 
     
@@ -234,13 +233,12 @@ def calculateCurrentRate():
     
     #consumablesEveryone['adjusted_rate'] = data.apply(adjust_rate, axis=1)
     consumablesEveryone['rate'] = consumablesEveryone.apply(baased, axis=1)
-    consumablesEveryone
     consumablesEveryone = consumablesEveryone[['affected_consumable','rate']]
     consumablesEveryone= consumablesEveryone.groupby('affected_consumable', group_keys=False, as_index=False).sum(numeric_only=True)
 
     consumablesNASA = consumablesNASA[['affected_consumable','rate']]
-    consumablesNASA= consumablesNASA.groupby('affected_consumable', group_keys=False, as_index=False).sum()
-    rates = consumablesNASA.append(consumablesEveryone)
+    consumablesNASA= consumablesNASA.groupby('affected_consumable', group_keys=False, as_index=False).sum(numeric_only=True)
+    rates = pd.concat([consumablesEveryone,consumablesNASA])
     return rates
 
 def baased(row):
@@ -251,9 +249,10 @@ def baased(row):
      
 
 def compare():
-    usageRateWater,usageRateNitrogen,usageRateOxygen,usageRatefilterInsert,usageRateKTO,usageRatepretreat,usageRatefoodUS = compareRates()
     rates = calculateCurrentRate()
+    usageRateWater,usageRateNitrogen,usageRateOxygen,usageRatefilterInsert,usageRateKTO,usageRatepretreat,usageRatefoodUS = compareRates()
 
+    print(usageRateWater)
     usageRateWater['rate_definition'] = rates[rates['affected_consumable'] == 'Water']["rate"].values[0]
     usageRateNitrogen['rate_definition'] = rates[rates['affected_consumable'] == 'Nitrogen']["rate"].values[0]
     usageRateOxygen['rate_definition'] = rates[rates['affected_consumable'] == 'Oxygen']["rate"].values[0]
@@ -270,7 +269,7 @@ def compare():
     usageRatepretreat['percentageDiffirence'] = usageRatepretreat.apply(lambda row: (abs(row['rate_definition'] - row['rates']) / ((row['rates'] + row['rate_definition']) / 2 )) * 100 if row['rates'] != 0 else 0, axis=1)
     usageRatefoodUS['percentageDiffirence'] = usageRatefoodUS.apply(lambda row: (abs(row['rate_definition'] - row['rates']) / ((row['rates'] + row['rate_definition']) / 2 )) * 100 if row['rates'] != 0 else 0, axis=1)
 
-    path = r"prediction/PredictionsCSV/"
+    path = r"../prediction/PredictionsCSV/"
     usageRateWater.to_csv(path + 'usageRateWater.csv')
     usageRateNitrogen.to_csv(path + 'usageRateNitrogen.csv')
     usageRateOxygen.to_csv(path + 'usageRateOxygen.csv')
@@ -280,4 +279,5 @@ def compare():
     usageRatefoodUS.to_csv(path + 'usageRatefoodUS.csv')
 
     return 
+
 compare()
