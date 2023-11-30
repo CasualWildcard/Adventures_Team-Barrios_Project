@@ -134,7 +134,6 @@ def displayAnalysisDateRange(aCategoryDropdown):
 
 def verifyDateRange(startDate, endDate):
     viewAnalysisError = gr.Label(value="", show_label=False)
-    print(startDate)
     if startDate <= endDate:
         pass
     elif startDate > endDate:
@@ -143,19 +142,17 @@ def verifyDateRange(startDate, endDate):
         viewAnalysisError = gr.Label(value="Error: One or both date values are empty.", show_label=False)
     return viewAnalysisError
 
-def loadAnalyses(startDate, endDate, aCategoryDropdown):
-    filePath = "prediction/predictionsCSV/"
+def loadAnalyses(startDate, aCategoryDropdown, usageRateDropdown):
+    displayRate = gr.DataFrame(value=pd.read_csv("front-end/test.csv"), visible = False)
     if aCategoryDropdown == "Historical Assumptions VS Actual Usage":
-        filePath += usageRateDropdown
-        usageRate = pd.read_csv(filePath)
-        displayRate = gr.DataFrame(value=usageRate, visible = True)
+        displayRate = gr.DataFrame(value=pd.read_csv("prediction/predictionsCSV/" + usageRateDropdown), visible = True)
     #elif aCategoryDropdown == "Resupply Quantity Required":
 
     #elif aCategoryDropdown == "Minimum Launch Vehicle Resupply Plan":
 
     #elif aCategoryDropdown == "Minimun Supply Violation":
 
-    return verifyDateRange(startDate, endDate)
+    return displayRate, verifyDateRange(startDate, startDate)
 
 #does authentication with the login cookies must be enabled in your browser to make this happen
 def authentication(username,password):
@@ -223,7 +220,7 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
                                                       'storedItemsOnlyIMS'])
         with gr.Row():
             viewDownloadError = gr.Label(value="", show_label=False)
-            downloadButton = gr.Button(value="Download", show_label=False, visible=True)
+            downloadButton = gr.Button(value="Edit in Excel", show_label=False, visible=True)
             downloadButton.click(fn=openFile, inputs=[downloadDropdown], outputs=[viewDownloadError])
 
     with gr.Tab("Manage Database"):
@@ -293,10 +290,11 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
                                                                                       "usageRateKTO.csv",
                                                                                       "usageRatepretreat.csv",
                                                                                       "usageRatefoodUS.csv"])
+        with gr.Row():    
             displayRate = gr.DataFrame(value= pd.read_csv("front-end/test.csv"), visible = False)
         confirmButton = gr.Button(value="Confirm", show_label=False,visible=False)
         viewAnalysisError = gr.Label(value="", show_label=False)
         aCategoryDropdown.input(fn=displayAnalysisDateRange, inputs=[aCategoryDropdown], outputs=[usageRateDropdown, startDateCategoryDropdown,endDateCategoryDropdown, confirmButton])
-        confirmButton.click(fn=loadAnalyses, inputs=[startDateCategoryDropdown, endDateCategoryDropdown, aCategoryDropdown], outputs=[viewAnalysisError])
+        confirmButton.click(fn=loadAnalyses, inputs=[startDateCategoryDropdown, aCategoryDropdown, usageRateDropdown], outputs=[displayRate, viewAnalysisError])
 
 mockup.launch(share=True)#to turn off authentication just delete the auth part :)
