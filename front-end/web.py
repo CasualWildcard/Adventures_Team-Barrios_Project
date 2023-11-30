@@ -10,7 +10,7 @@ CSVHeaders = {
     'crewNationalityLookup' : ["nationality", "is_usos_crew", "is_rsa_crew"],
     'ratesDefinition' : ["rate_category", "affected_consumable", "rate", "units", "type", "efficiency"],
     'usWeeklyWaterSummary' : ["Date", "Corrected Potable (L)", "Corrected Technical  (L)", "Corrected Total (L)", "Resupply Potable (L)", "Resupply Technical (L)", "Corrected Predicted (L)", 'Unnamed: 7', 'Unnamed: 8'],
-    'IMS Consumables' : ["category_name", "categoryID", "module_name", "moduleID", "unique_cat_mod_ID"],
+    'IMSConsumables' : ["category_name", "categoryID", "module_name", "moduleID", "unique_cat_mod_ID"],
     'issFlightPlanCrew' : ["datedim", "nationality_category", "crew_count"],
     'thresholdLimits' : ["threshold_category", "threshold_value", "threshold_owner", "units"],
     'rsaWeeklyWaterSummary' : ["Report Date", "Remain. Potable (liters)", "Remain. Technical (liters)", "Remain. Rodnik (liters)"],
@@ -116,11 +116,21 @@ def updateColumns(category):
         seventhColumn = gr.Textbox(interactive=True, visible=False)
     return(buttonChange,firstColumn,secondColumn,thirdColumn,fourthColumn,fifthColumn,sixthColumn,seventhColumn)
 
-def displayAnalysisDateRange():
+def displayAnalysisDateRange(aCategoryDropdown):
+    if aCategoryDropdown == "Historical Assumptions VS Actual Usage":
+        usageRateDropdown = gr.Dropdown(interactive=True, label="Which Usage Rate", visible=True, choices= ["usageRateWater.csv",
+                                                                                                            "usageRateNitrogen.csv",
+                                                                                                            "usageRateOxygen.csv",
+                                                                                                            "usageRatefilterInsert.csv",
+                                                                                                            "usageRateKTO.csv",
+                                                                                                            "usageRatepretreat.csv",
+                                                                                                            "usageRatefoodUS.csv"])
+    else:
+        usageRateDropdown = gr.Dropdown(interactive=True, label="Which Usage Rate", visible=False, choices= "usageRateWater.csv")
     startDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
     endDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
     confirmDateButton = gr.Button(value="Confirm", show_label=False,visible=True)
-    return startDateCategoryDropdown, endDateCategoryDropdown, confirmDateButton
+    return usageRateDropdown, startDateCategoryDropdown, endDateCategoryDropdown, confirmDateButton
 
 def verifyDateRange(startDate, endDate):
     viewAnalysisError = gr.Label(value="", show_label=False)
@@ -133,6 +143,20 @@ def verifyDateRange(startDate, endDate):
         viewAnalysisError = gr.Label(value="Error: One or both date values are empty.", show_label=False)
     return viewAnalysisError
 
+def loadAnalyses(startDate, endDate, aCategoryDropdown):
+    filePath = "prediction/predictionsCSV/"
+    if aCategoryDropdown == "Historical Assumptions VS Actual Usage":
+        filePath += usageRateDropdown
+        usageRate = pd.read_csv(filePath)
+        displayRate = gr.DataFrame(value=usageRate, visible = True)
+    #elif aCategoryDropdown == "Resupply Quantity Required":
+
+    #elif aCategoryDropdown == "Minimum Launch Vehicle Resupply Plan":
+
+    #elif aCategoryDropdown == "Minimun Supply Violation":
+
+    return verifyDateRange(startDate, endDate)
+
 #does authentication with the login cookies must be enabled in your browser to make this happen
 def authentication(username,password):
     auth_usernames = "test"
@@ -141,10 +165,19 @@ def authentication(username,password):
         return True
     return False
 
+def openFile(fileName):
+    viewDownloadError = gr.Label(value="", show_label=False)
+    try:
+        os.system("start EXCEL.EXE " + "back-end/csvStorage/" + fileName + ".csv")
+        viewDownloadError = gr.Label(value="File now opening", show_label=False)
+    except:
+        viewDownloadError = gr.Label(value="Error: File does not exist. No such file has been submitted yet.", show_label=False)
+    return viewDownloadError
+
 def importCSV(csvdata):
     outputTypes = [] # Debug list to ensure that the file is being read correctly
     name = 'back-end/csvStorage/' # File name, taken from key in for loop below
-    os.getcwd()
+    
     for csv in csvdata: # Iterate through all uploaded CSV files
       try: # If the CSV is entirely blank, Pandas will throw an error. This catches it.
         data = pd.read_csv(csv.name) # Imports CSV into a dataframe 'data'
@@ -177,8 +210,22 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
         with gr.Row():
             csv1 = gr.Interface(importCSV, gr.File(file_types = [".csv"], file_count = "multiple", label = "Tank Capacity"), "text", allow_flagging='never')
         with gr.Row():
-            csv2 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Inventory Management System Consumables", interactive = True), None)
-            csv3 = gr.Interface(importCSV, gr.File(file_types = [".csv"], label = "Stored Items Only Inventory Management System Consumables", interactive = True), None)
+            downloadDropdown = gr.Dropdown(interactive=True, choices = ['tankCapacity',
+                                                      'issFlightPlan',
+                                                      'crewNationalityLookup',
+                                                      'ratesDefinition',
+                                                      'usWeeklyWaterSummary',
+                                                      'IMSConsumables',
+                                                      'issFlightPlanCrew',
+                                                      'thresholdLimits',
+                                                      'rsaWeeklyWaterSummary',
+                                                      'weeklyGasSummary',
+                                                      'storedItemsOnlyIMS'])
+        with gr.Row():
+            viewDownloadError = gr.Label(value="", show_label=False)
+            downloadButton = gr.Button(value="Download", show_label=False, visible=True)
+            downloadButton.click(fn=openFile, inputs=[downloadDropdown], outputs=[viewDownloadError])
+
     with gr.Tab("Manage Database"):
         manage = gr.Label(value="Manage Database")
         mdCategoryDropdown = gr.Dropdown(choices = ["Tank Capacity", "US/RS Weekly Consumable Gas Summary", 
@@ -239,9 +286,17 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
         with gr.Row():
             startDateCategoryDropdown = gr.Dropdown(interactive=True, label="Start Date", visible=False, choices = availableDates)
             endDateCategoryDropdown = gr.Dropdown(interactive=True, label="End Date", visible=False, choices = availableDates)
-        confirmDateButton = gr.Button(value="Confirm", show_label=False,visible=False)
+            usageRateDropdown = gr.Dropdown(interactive=True, label="Which Usage Rate", visible=False, choices= ["usageRateWater.csv",
+                                                                                      "usageRateNitrogen.csv",
+                                                                                      "usageRateOxygen.csv",
+                                                                                      "usageRatefilterInsert.csv",
+                                                                                      "usageRateKTO.csv",
+                                                                                      "usageRatepretreat.csv",
+                                                                                      "usageRatefoodUS.csv"])
+            displayRate = gr.DataFrame(value= pd.read_csv("front-end/test.csv"), visible = False)
+        confirmButton = gr.Button(value="Confirm", show_label=False,visible=False)
         viewAnalysisError = gr.Label(value="", show_label=False)
-        aCategoryDropdown.input(fn=displayAnalysisDateRange, outputs=[startDateCategoryDropdown,endDateCategoryDropdown, confirmDateButton])
-        confirmDateButton.click(fn=verifyDateRange, inputs=[startDateCategoryDropdown, endDateCategoryDropdown], outputs=[viewAnalysisError])
+        aCategoryDropdown.input(fn=displayAnalysisDateRange, inputs=[aCategoryDropdown], outputs=[usageRateDropdown, startDateCategoryDropdown,endDateCategoryDropdown, confirmButton])
+        confirmButton.click(fn=loadAnalyses, inputs=[startDateCategoryDropdown, endDateCategoryDropdown, aCategoryDropdown], outputs=[viewAnalysisError])
 
 mockup.launch(share=True)#to turn off authentication just delete the auth part :)
