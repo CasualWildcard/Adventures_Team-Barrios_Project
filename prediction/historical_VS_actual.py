@@ -29,7 +29,7 @@ def getDropDates(): # this is done
 
 def modifyConsumables():
     # gets the consumables csv ofc need to change the read csv part :)
-    consumables = pd.read_csv(csvPath + 'IMSConsumables.csv')
+    consumables = pd.read_csv(csvPath + 'consumables.csv')
     storedConsumables = pd.read_csv(csvPath + 'storedItemsOnlyIMS.csv')
     consumables = consumables.copy(deep=True)
     storedConsumables = storedConsumables.copy(deep=True)
