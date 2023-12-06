@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import gradio as gr
+import matplotlib.pyplot as plt
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
 
@@ -118,19 +119,32 @@ def updateColumns(category):
 
 def displayAnalysisDateRange(aCategoryDropdown):
     if aCategoryDropdown == "Historical Assumptions VS Actual Usage":
-        usageRateDropdown = gr.Dropdown(interactive=True, label="Which Usage Rate", visible=True, choices= ["usageRateWater.csv",
+        dataDropdown = gr.Dropdown(interactive=True, label="Which Usage Rate", visible=True, choices= ["usageRateWater.csv",
                                                                                                             "usageRateNitrogen.csv",
                                                                                                             "usageRateOxygen.csv",
                                                                                                             "usageRatefilterInsert.csv",
                                                                                                             "usageRateKTO.csv",
                                                                                                             "usageRatepretreat.csv",
                                                                                                             "usageRatefoodUS.csv"])
+        startDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
+        endDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
+
+    elif aCategoryDropdown == "Resupply Quantity Required":
+        dataDropdown = gr.Dropdown(interactive=True, label="Which Resupply Quantity", visible=True, choices= ["resupplyQuantityWater.csv",
+                                                                                                            "resupplyQuantityNitrogen.csv",
+                                                                                                            "resupplyQuantityOxygen.csv",
+                                                                                                            "resupplyQuantityFilterInsert.csv",
+                                                                                                            "resupplyQuantityKTO.csv",
+                                                                                                            "resupplyQuantityPretreat.csv",
+                                                                                                            "resupplyQuantityFoodUS.csv"])
+        startDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
+        endDateCategoryDropdown = gr.Dropdown(interactive=True, visible=False, choices = availableDates)
+    
     else:
-        usageRateDropdown = gr.Dropdown(interactive=True, label="Which Usage Rate", visible=False, choices= "usageRateWater.csv")
-    startDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
-    endDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
+        startDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
+        endDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
     confirmDateButton = gr.Button(value="Confirm", show_label=False,visible=True)
-    return usageRateDropdown, startDateCategoryDropdown, endDateCategoryDropdown, confirmDateButton
+    return dataDropdown, startDateCategoryDropdown, endDateCategoryDropdown, confirmDateButton
 
 def verifyDateRange(startDate, endDate):
     viewAnalysisError = gr.Label(value="", show_label=False)
@@ -142,17 +156,37 @@ def verifyDateRange(startDate, endDate):
         viewAnalysisError = gr.Label(value="Error: One or both date values are empty.", show_label=False)
     return viewAnalysisError
 
-def loadAnalyses(startDate, endDate, aCategoryDropdown, usageRateDropdown):
-    displayRate = gr.DataFrame(value=pd.read_csv("front-end/test.csv"), visible = False)
-    if aCategoryDropdown == "Historical Assumptions VS Actual Usage":
-        displayRate = gr.DataFrame(value=pd.read_csv("prediction/predictionsCSV/" + usageRateDropdown), visible = True)
-    #elif aCategoryDropdown == "Resupply Quantity Required":
+def plot(df):
+    plt.figure(figsize=(10, 6))
+    plt.plot(df['start_date'], df['rates'])
+    plt.xlabel('Date')
+    plt.ylabel('Rate')
+    plt.title('Rate over Time')
+    plt.savefig('plot.png')
+    return 'plot.png'
 
+def loadAnalyses(startDate, endDate, aCategoryDropdown, dataDropdown):
+    # Load the data
+    df = pd.read_csv("prediction/predictionsCSV/" + dataDropdown)
+
+    # Convert 'datesOfMission' to datetime and split into two columns
+    df[['start_date', 'end_date']] = df['datesOfMission'].str.split(' - ', expand=True)
+    df['start_date'] = pd.to_datetime(df['start_date'])
+    df['end_date'] = pd.to_datetime(df['end_date'])
+
+    if aCategoryDropdown == "Historical Assumptions VS Actual Usage":
+        displayRate = gr.Image(value=plot(df), visible = True)
+    
+    elif aCategoryDropdown == "Resupply Quantity Required":
+        displayRate = gr.DataFrame(value=pd.read_csv("prediction/predictionsCSV/" + dataDropdown), visible = True)
     #elif aCategoryDropdown == "Minimum Launch Vehicle Resupply Plan":
 
     #elif aCategoryDropdown == "Minimun Supply Violation":
-
-    return displayRate, verifyDateRange(startDate, endDate)
+    
+    if(endDate != 0):
+        return displayRate, verifyDateRange(startDate, endDate)
+    else:
+        return displayRate, verifyDateRange(startDate, startDate)
 
 #does authentication with the login cookies must be enabled in your browser to make this happen
 def authentication(username,password):
@@ -283,18 +317,25 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
         with gr.Row():
             startDateCategoryDropdown = gr.Dropdown(interactive=True, label="Start Date", visible=False, choices = availableDates)
             endDateCategoryDropdown = gr.Dropdown(interactive=True, label="End Date", visible=False, choices = availableDates)
-            usageRateDropdown = gr.Dropdown(interactive=True, label="Which Usage Rate", visible=False, choices= ["usageRateWater.csv",
+            dataDropdown = gr.Dropdown(interactive=True, label="Which Usage Rate", visible=False, choices= ["usageRateWater.csv",
                                                                                       "usageRateNitrogen.csv",
                                                                                       "usageRateOxygen.csv",
                                                                                       "usageRateFilterInsert.csv",
                                                                                       "usageRateKTO.csv",
                                                                                       "usageRatePretreat.csv",
                                                                                       "usageRateFoodUS.csv"])
+            #dataDropdown = gr.Dropdown(interactive=True, label="Which Resupply Quantity", visible=False, choices= ["resupplyQuantityWater.csv",
+            #                                                                          "resupplyQuantityNitrogen.csv",
+            #                                                                          "resupplyQuantityOxygen.csv",
+            #                                                                          "resupplyQuantityFilterInsert.csv",
+            #                                                                          "resupplyQuantityKTO.csv",
+            #                                                                          "resupplyQuantityPretreat.csv",
+            #                                                                          "resupplyQuantityFoodUS.csv"])
         with gr.Row():    
-            displayRate = gr.DataFrame(value= pd.read_csv("front-end/test.csv"), visible = False)
+            displayRate = gr.Image(value="plot.png", visible = False)
         confirmButton = gr.Button(value="Confirm", show_label=False,visible=False)
         viewAnalysisError = gr.Label(value="", show_label=False)
-        aCategoryDropdown.input(fn=displayAnalysisDateRange, inputs=[aCategoryDropdown], outputs=[usageRateDropdown, startDateCategoryDropdown,endDateCategoryDropdown, confirmButton])
-        confirmButton.click(fn=loadAnalyses, inputs=[startDateCategoryDropdown, endDateCategoryDropdown, aCategoryDropdown, usageRateDropdown], outputs=[displayRate, viewAnalysisError])
+        aCategoryDropdown.input(fn=displayAnalysisDateRange, inputs=[aCategoryDropdown], outputs=[dataDropdown, startDateCategoryDropdown,endDateCategoryDropdown, confirmButton])
+        confirmButton.click(fn=loadAnalyses, inputs=[startDateCategoryDropdown, endDateCategoryDropdown, aCategoryDropdown, dataDropdown], outputs=[displayRate, viewAnalysisError])
 
 mockup.launch(share=True)#to turn off authentication just delete the auth part :)
