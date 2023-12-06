@@ -273,10 +273,10 @@ def compare():
     usageRateWater.to_csv(path + 'usageRateWater.csv')
     usageRateNitrogen.to_csv(path + 'usageRateNitrogen.csv')
     usageRateOxygen.to_csv(path + 'usageRateOxygen.csv')
-    usageRatefilterInsert.to_csv(path + 'usageRatefilterInsert.csv')
+    usageRatefilterInsert.to_csv(path + 'usageRateFilterInsert.csv')
     usageRateKTO.to_csv(path + 'usageRateKTO.csv')
-    usageRatepretreat.to_csv(path + 'usageRatepretreat.csv')
-    usageRatefoodUS.to_csv(path + 'usageRatefoodUS.csv')
+    usageRatepretreat.to_csv(path + 'usageRatePretreat.csv')
+    usageRatefoodUS.to_csv(path + 'usageRateFoodUS.csv')
 
     return 
 
