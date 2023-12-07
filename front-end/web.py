@@ -4,6 +4,8 @@ import gradio as gr
 import matplotlib.pyplot as plt
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
+import mplcursors
+import plotly.graph_objects as go
 
 CSVHeaders = {
     'tankCapacity' : ["tank_category", "tank_capacity", "units"],
@@ -122,10 +124,10 @@ def displayAnalysisDateRange(aCategoryDropdown):
         dataDropdown = gr.Dropdown(interactive=True, label="Which Usage Rate", visible=True, choices= ["usageRateWater.csv",
                                                                                                             "usageRateNitrogen.csv",
                                                                                                             "usageRateOxygen.csv",
-                                                                                                            "usageRatefilterInsert.csv",
+                                                                                                            "usageRateFilterInsert.csv",
                                                                                                             "usageRateKTO.csv",
-                                                                                                            "usageRatepretreat.csv",
-                                                                                                            "usageRatefoodUS.csv"])
+                                                                                                            "usageRatePretreat.csv",
+                                                                                                            "usageRateFoodUS.csv"])
         startDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
         endDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
 
@@ -156,28 +158,34 @@ def verifyDateRange(startDate, endDate):
         viewAnalysisError = gr.Label(value="Error: One or both date values are empty.", show_label=False)
     return viewAnalysisError
 
-def plot(df):
-    plot = plt.figure(figsize=(10, 6))
-    plt.plot(df['start_date'], df['rates'])
-    plt.xlabel('Date')
-    plt.ylabel('Rate')
-    plt.title('Rate over Time')
-    return plot
-
 def loadAnalyses(startDate, endDate, aCategoryDropdown, dataDropdown):
-    # Load the data
-    df = pd.read_csv("prediction/predictionsCSV/" + dataDropdown)
-
-    # Convert 'datesOfMission' to datetime and split into two columns
-    df[['start_date', 'end_date']] = df['datesOfMission'].str.split(' - ', expand=True)
-    df['start_date'] = pd.to_datetime(df['start_date'])
-    df['end_date'] = pd.to_datetime(df['end_date'])
-
+    
     if aCategoryDropdown == "Historical Assumptions VS Actual Usage":
-        displayRate = gr.Plot(value=plot(df), visible = True)
+        # Load the data
+        df = pd.read_csv("prediction/predictionsCSV/" + dataDropdown)
+
+        # Create a plot
+        fig = go.Figure()
+
+        if (dataDropdown == "usageRateACY.csv" or dataDropdown == "usageRateFoodUS.csv" or dataDropdown == "usageRateKTO.csv" or dataDropdown == "usageRatePretreat.csv" or dataDropdown == "usageRateFilterInsert.csv"):
+            # Add traces
+            fig.add_trace(go.Scatter(x=df['days_since_resupply'], y=df['actual_loss'], mode='lines', name='Actual Loss'))
+            fig.add_trace(go.Scatter(x=df['days_since_resupply'], y=df['assumed_loss'], mode='lines', name='Assumed Loss'))
+
+            # Set layout properties
+            fig.update_layout(title='Actual Loss vs Assumed Loss', xaxis_title='Days Since Resupply', yaxis_title='Loss')
+        else:
+            # Add traces
+            fig.add_trace(go.Scatter(x=df['days_since_resupply'], y=df['actual_rate_per/day'], mode='lines', name='Actual Usage Rate'))
+            fig.add_trace(go.Scatter(x=df['days_since_resupply'], y=df['rate_per_day'], mode='lines', name='Assumed Usage Rate'))
+
+            # Set layout properties
+            fig.update_layout(title='Actual Usage Rate vs Assumed Usage Rate', xaxis_title='Days Since Resupply', yaxis_title='Usage Rate')
+        displayRate = gr.Plot(value=fig, visible = True)
     
     elif aCategoryDropdown == "Resupply Quantity Required":
         displayRate = gr.DataFrame(value=pd.read_csv("prediction/predictionsCSV/" + dataDropdown), visible = True)
+        
     #elif aCategoryDropdown == "Minimum Launch Vehicle Resupply Plan":
 
     #elif aCategoryDropdown == "Minimun Supply Violation":
@@ -322,7 +330,8 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
                                                                                       "usageRateFilterInsert.csv",
                                                                                       "usageRateKTO.csv",
                                                                                       "usageRatePretreat.csv",
-                                                                                      "usageRateFoodUS.csv"])
+                                                                                      "usageRateFoodUS.csv",
+                                                                                      "usageRateACY.csv"])
             #dataDropdown = gr.Dropdown(interactive=True, label="Which Resupply Quantity", visible=False, choices= ["resupplyQuantityWater.csv",
             #                                                                          "resupplyQuantityNitrogen.csv",
             #                                                                          "resupplyQuantityOxygen.csv",
