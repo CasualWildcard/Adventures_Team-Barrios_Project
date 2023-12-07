@@ -558,7 +558,7 @@ def question2(startDate):
     result['resupply_needed_acy'],result['current_acy'] = calculateResupply(result,"threshold_acy","total_acy")
     result['resupply_needed_food_us'],result['current_food_us'] = calculateResupply(result,"threshold_food_us","total_food_us")
 
-    path = os.getcwd() + "\\prediction\\question2\\"
+    path = os.getcwd() + "\\prediction\\predictionsCSV\\"
 
     finalFilter = result[['datedim','resupply_needed_filter','current_filter']]
     finalKTO = result[['datedim','resupply_needed_kto','current_kto']]
@@ -697,7 +697,7 @@ def question2a(startDate):
     finalNitrogen = result[['datedim','resupply_needed_nitrogen','current_nitrogen']]
     finalWater = result[['datedim','resupply_needed_water','current_water']]
 
-    path = os.getcwd() + "\\prediction\\question2\\"
+    path = os.getcwd() + "\\prediction\\predictionsCSV\\"
 
     finalOxygen.to_csv(path + 'resultOxygen.csv')
     finalNitrogen.to_csv(path + 'resultNitrogen.csv')
@@ -711,8 +711,77 @@ def calcRate1(row,day,crew,generation):
 def calcWaterRate1(row,day,crew,generation):
     return row[day] + (row[crew] * row['crew_nasa']) - row[generation]
 
+def question4():
+    path = (os.getcwd() +"/prediction/predictionsCSV/")
+
+    data = pd.read_csv(path + 'resultWater.csv')
+    water = data.copy(deep=True)
+
+    data = pd.read_csv(path + 'resultOxygen.csv')
+    oxygen = data.copy(deep=True)
+
+    data = pd.read_csv(path + 'resultNitrogen.csv')
+    nitrogen = data.copy(deep=True)
+
+    data = pd.read_csv(path + 'finalPretreat.csv')
+    pretreat = data.copy(deep=True)
+
+    data = pd.read_csv(path + 'finalKTO.csv')
+    kto = data.copy(deep=True)
+
+    data = pd.read_csv(path + 'finalFoodUS.csv')
+    food = data.copy(deep=True)
+
+    data = pd.read_csv(path + 'finalFilter.csv')
+    filter = data.copy(deep=True)
+
+    data = pd.read_csv(path + 'finalACY.csv')
+    acy = data.copy(deep=True)
+
+    water = water[['datedim','resupply_needed_water']]
+    oxygen = oxygen[['datedim','resupply_needed_oxygen']]
+    nitrogen = nitrogen[['datedim','resupply_needed_nitrogen']]
+    pretreat = pretreat[['datedim','resupply_needed_pretreat']]
+    kto = kto[['datedim','resupply_needed_kto']]
+    food = food[['datedim','resupply_needed_food_us']]
+    filter = filter[['datedim','resupply_needed_filter']]
+    acy = acy[['datedim','resupply_needed_acy']]
+
+    result = pd.merge(water,oxygen,on='datedim',how='outer')
+    result = pd.merge(result,nitrogen,on='datedim',how='outer')
+    result = pd.merge(result,pretreat,on='datedim',how='outer')
+    result = pd.merge(result,kto,on='datedim',how='outer')
+    result = pd.merge(result,food,on='datedim',how='outer')
+    result = pd.merge(result,filter,on='datedim',how='outer')
+    result = pd.merge(result,acy,on='datedim',how='outer')
+
+    cols = ['resupply_needed_water','resupply_needed_oxygen','resupply_needed_nitrogen','resupply_needed_pretreat','resupply_needed_kto','resupply_needed_food_us','resupply_needed_filter', 'resupply_needed_acy']
+    result['sum'] = result[cols].sum(axis=1)
+
+    result['datedim'] = pd.to_datetime(result['datedim'])
+    
+    random = result.loc[result['sum'].idxmax()]
+    q4 = pd.DataFrame(random)
+
+    maxes = result.set_index('datedim')
+    maxes = maxes.drop(columns='sum')
+    maxes = maxes.apply(pd.Series.nlargest, n=5).unstack().dropna()
+    maxes = pd.DataFrame(maxes)
+    maxes.rename(columns={0: 'Total'}, inplace=True)
+
+    maxes.sort_values('Total',ascending=False)
+    q4.rename(columns={33: 'Total'}, inplace=True)
+
+    path = os.getcwd() + "\\prediction\\predictionsCSV\\"
+
+    q4.to_csv(path + 'predictionQ4.csv')
+    maxes.to_csv(path + 'predictionTop5.csv')
+
+    return
+    
 # test('2022-03-03','2023-01-01')
 # test2('2022-03-03','2023-01-01')
-question2('2022-10-19')
-question2a('2023-06-06')
+#question2('2023-08-25')
+#question2a('2023-08-25')
+question4()
 
