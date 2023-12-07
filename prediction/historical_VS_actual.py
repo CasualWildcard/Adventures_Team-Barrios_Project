@@ -109,21 +109,12 @@ def compareRates():
     foodUS = foodUS[['datedim', 'quantity']]
     foodUS=foodUS.groupby("datedim", group_keys=False, as_index=False).sum()
 
-    #EDV = consumables.loc[consumables["category_name"] == 'EDV']
-    #EDV = EDV[['datedim', 'calculated_volume']]
-
-    # ACY = consumables.loc[consumables["category_name"] == 'ACY']
-    # ACY = ACY[['datedim', 'calculated_volume']]
-
-    # foodRS = consumables.loc[consumables["category_name"] == 'Food-RS']
-    # foodRS = foodRS[['datedim', 'calculated_volume']]
     return filterInsert,KTO,pretreat,foodUS,acyInserts #,usageRateEDV
 
     
 def calculateCurrentRate():
     data = pd.read_csv(csvPath + 'ratesDefinition.csv') # needs to be changed
     data = data.copy(deep=True)
-
     
     consumablesEveryone = data.drop(data[(data['affected_consumable'] == 'US Food BOBs') |
                                      (data['affected_consumable'] == 'RS Food Rations') |
@@ -139,15 +130,14 @@ def calculateCurrentRate():
                                      (data['affected_consumable'] == 'Oxygen') |
                                      (data['affected_consumable'] == 'Water')].index)
 
-    #consumablesEveryone['rate'] = consumablesEveryone.apply(baased, axis=1)
+
     consumablesEveryone = consumablesEveryone.drop(consumablesEveryone[(consumablesEveryone['rate_category'] == 'RSOS Crew Water Consumption (Food/Drinking)') | 
                                                                         (consumablesEveryone['rate_category'] == 'RSOS Condensate Processed to Potable')].index)
     consumablesEveryone = consumablesEveryone[['affected_consumable','rate','units','type']]
-    #consumablesEveryone= consumablesEveryone.groupby('affected_consumable', group_keys=False, as_index=False).sum(numeric_only=True)
+
 
     consumablesNASA = consumablesNASA[['affected_consumable','rate']]
-    # consumablesNASA= consumablesNASA.groupby('affected_consumable', group_keys=False, as_index=False).sum(numeric_only=True)
-    # rates = pd.concat([consumablesEveryone,consumablesNASA])
+
 
     return consumablesNASA, consumablesEveryone
 
@@ -202,6 +192,7 @@ def calculateActualRate():
     actual = pd.merge(temp, temp1, on="affected_consumable", how="outer")
     actual = pd.merge(actual, consumablesEveryone, on="affected_consumable", how="outer")
     actual = actual.fillna(0)
+    actual.reset_index(drop=True, inplace=True)
     return actual
 
 def ifCrew(row):
@@ -238,7 +229,7 @@ def test2(startDate,endDate):
     result1 = result.copy()
     # Merge with left join to keep only the rows with corresponding dates in oxygen
     merged_data = pd.merge(result, oxygen, on='datedim', how='left')
-
+    merged_data.reset_index(drop=True, inplace=True)
     # Filter out rows where 'total' is not null (indicating a match with the oxygen DataFrame)
     filtered_result_data = merged_data[merged_data['total'].notnull()]
 
@@ -248,10 +239,11 @@ def test2(startDate,endDate):
     # gets the number of crew and puts it into the table also get the length
     result = pd.merge(filtered_result_data, numNASA, on='datedim', how='inner')
     result.rename(columns={'crew_count': 'nasa_crew'}, inplace=True)
+    result.reset_index(drop=True, inplace=True)
     result = pd.merge(result, numAll, on='datedim', how='inner')
     result.rename(columns={'crew_count': 'all_crew'}, inplace=True)
     result['days_since_resupply'] = pd.RangeIndex(len(result.index))
-
+    result.reset_index(drop=True, inplace=True)
 
 
     # Merge with left join to keep only the rows with corresponding dates in oxygen
@@ -266,8 +258,10 @@ def test2(startDate,endDate):
     # gets the number of crew and puts it into the table also get the length
     result1 = pd.merge(filtered_result_data, numNASA, on='datedim', how='inner')
     result1.rename(columns={'crew_count': 'nasa_crew'}, inplace=True)
+    result1.reset_index(drop=True, inplace=True)
     result1 = pd.merge(result1, numAll, on='datedim', how='inner')
     result1.rename(columns={'crew_count': 'all_crew'}, inplace=True)
+    result1.reset_index(drop=True, inplace=True)
     result1['days_since_resupply'] = pd.RangeIndex(len(result1.index))
 
     # initlialzes other tables
@@ -492,7 +486,7 @@ def question2(startDate):
     datesOfFlights = getDropDates()
     datesOfFlights['resupply'] = 'True'
 
-    threshold = pd.read_csv(csvPath + 'thresholdLimits.csv')
+    threshold = pd.read_csv(csvPath + 'thresholdsLimits.csv')
     threshold = threshold.copy(deep=True)
     threshold.drop(threshold[threshold['threshold_owner'] == 'RSOS'].index, inplace = True)
     threshold['actual_loss'] = threshold.apply(applySafetyFactor, axis=1)
@@ -509,8 +503,8 @@ def question2(startDate):
     kto.drop(kto[kto['datedim'] > endDate].index, inplace=True)
     pretreat.drop(pretreat[pretreat['datedim'] < startDate].index, inplace=True)
     pretreat.drop(pretreat[pretreat['datedim'] > endDate].index, inplace=True)
-    #foodUS.drop(foodUS[foodUS['datedim'] < startDate].index, inplace=True)
-    #foodUS.drop(foodUS[foodUS['datedim'] > endDate].index, inplace=True)
+    foodUS.drop(foodUS[foodUS['datedim'] < startDate].index, inplace=True)
+    foodUS.drop(foodUS[foodUS['datedim'] > endDate].index, inplace=True)
     acyInserts.drop(acyInserts[acyInserts['datedim'] < startDate].index, inplace=True)
     acyInserts.drop(acyInserts[acyInserts['datedim'] > endDate].index, inplace=True)
     numAll.drop(numAll[numAll['datedim'] < startDate].index, inplace = True)
@@ -521,35 +515,65 @@ def question2(startDate):
     numNASA = numNASA.reset_index()
     result['datedim'] = pd.date_range(start = startDate, end = endDate)
     result["datedim"] = pd.to_datetime(result['datedim'])
-    
+
     result = pd.merge(result, datesOfFlights, on='datedim', how='left')
     result = result.fillna('False')
 
     result['crew_everyone'] = numAll['crew_count']
     result['crew_nasa'] = numNASA['crew_count']
+    
     result['threshold_acy'] = threshold[threshold['threshold_category'] == 'ACY Insert']['actual_loss'].values[0]
     result['threshold_kto'] = threshold[threshold['threshold_category'] == 'KTO']['actual_loss'].values[0]
     result['threshold_pretreat'] = threshold[threshold['threshold_category'] == 'Pretreat Tanks']['actual_loss'].values[0]
     result['threshold_filter'] = threshold[threshold['threshold_category'] == 'Filter Inserts']['actual_loss'].values[0]
-    
+    result['threshold_food_us'] = threshold[threshold['threshold_category'] == 'Food']['actual_loss'].values[0]
+
     result['rate_filter'] = consumablesNASA[consumablesNASA['affected_consumable'] == 'Filter Inserts']["rate"].values[0]
     result['rate_kto'] = consumablesNASA[consumablesNASA['affected_consumable'] == 'KTO']["rate"].values[0]
     result['rate_pretreat'] = consumablesNASA[consumablesNASA['affected_consumable'] == 'Pretreat Tanks']["rate"].values[0]
     result['rate_acy'] = consumablesNASA[consumablesNASA['affected_consumable'] == 'ACY Inserts']["rate"].values[0]
+    result['rate_food_us'] = consumablesNASA[consumablesNASA['affected_consumable'] == 'US Food BOBs']["rate"].values[0]
 
     result['assumed_loss_filter'] = result.apply(multByCrew1, axis=1,rate='rate_filter')
     result['assumed_loss_kto'] = result.apply(multByCrew1, axis=1,rate='rate_kto')
     result['assumed_loss_pretreat'] = result.apply(multByCrew1, axis=1,rate='rate_pretreat')
     result['assumed_loss_acy'] = result.apply(multByCrew1, axis=1,rate='rate_acy')
+    result['assumed_loss_food_us'] = result.apply(multByCrew1, axis=1,rate='rate_food_us')
 
     result['total_filter'] = iteration(result,filterInsert[filterInsert['datedim'] == startDate]["quantity"].values[0],"assumed_loss_filter")
     result['total_kto'] = iteration(result,kto[kto['datedim'] == startDate]["quantity"].values[0],"assumed_loss_kto")
     result['total_pretreat'] = iteration(result,pretreat[pretreat['datedim'] == startDate]["quantity"].values[0],"assumed_loss_pretreat")
     result['total_acy'] = iteration(result,acyInserts[acyInserts['datedim'] == startDate]["quantity"].values[0],"assumed_loss_acy")
+    result['total_food_us'] = iteration(result,foodUS[foodUS['datedim'] == startDate]["quantity"].values[0],"assumed_loss_food_us")
+    
+    result.drop(result[result['resupply'] == 'False'].index, inplace=True)
+    result['temp'] = result['datedim'].shift(-1)
+    result['days_between_mission'] = (result['temp'] - result['datedim']).dt.days
+    result.drop(['temp'],axis = 1,inplace=True)
+    result.reset_index(drop=True, inplace=True)
 
-    result = result.reset_index()
+    result['resupply_needed_filter'],result['current_filter'] = calculateResupply(result,"threshold_filter","total_filter")
+    result['resupply_needed_kto'],result['current_kto'] = calculateResupply(result,"threshold_kto","total_kto")
+    result['resupply_needed_pretreat'],result['current_pretreat'] = calculateResupply(result,"threshold_pretreat","total_pretreat")
+    result['resupply_needed_acy'],result['current_acy'] = calculateResupply(result,"threshold_acy","total_acy")
+    result['resupply_needed_food_us'],result['current_food_us'] = calculateResupply(result,"threshold_food_us","total_food_us")
 
-    return result
+    path = os.getcwd() + "\\prediction\\question2\\"
+
+    finalFilter = result[['datedim','resupply_needed_filter','current_filter']]
+    finalKTO = result[['datedim','resupply_needed_kto','current_kto']]
+    finalPretreat = result[['datedim','resupply_needed_pretreat','current_pretreat']]
+    finalACY = result[['datedim','resupply_needed_acy','current_acy']]
+    finalFoodUS = result[['datedim','resupply_needed_food_us','current_food_us']]
+
+    finalFilter.to_csv(path + 'finalFilter.csv')
+    finalKTO.to_csv(path + 'finalKTO.csv')
+    finalPretreat.to_csv(path + 'finalPretreat.csv')
+    finalACY.to_csv(path + 'finalACY.csv')
+    finalFoodUS.to_csv(path + 'finalFoodUS.csv')
+
+    return
+
 
 def iteration(data,cur,assumedLoss):
     result = []
@@ -557,15 +581,138 @@ def iteration(data,cur,assumedLoss):
         cur -= row[assumedLoss]
         result.append(cur)
     return result
+
+def calculateResupply(data, threshold, total):
+    result = []
+    current_total = []
+    data['temp'] = data[total] - data[total].shift(-1).fillna(0)  # Handle NaN for the last row
+    current = data[total].values[0]
+    for index, row in data.iterrows():
+        current -= row['temp']  # Update current with consumption
+        if current < row[threshold]:
+            resupply_needed = row[threshold] - current  # Calculate resupply needed
+            current = row[threshold]  # Update current to reflect resupply
+            result.append(resupply_needed)
+        else:
+            result.append(0)
+        current_total.append(current)
+    
+    data.drop(['temp'], axis=1, inplace=True)
+    return result,current_total
+
+
 def multByCrew1(row,rate):
     return row['crew_nasa'] * row[rate]
-    
+
 def applySafetyFactor(row):
     return (row['threshold_value'] * 0.10) + row['threshold_value']
 
-def question2a():
-    return
+def question2a(startDate):
+    result = pd.DataFrame()
+    oxygen, nitrogen= getOxygenNitrogen()
+    water = getFilledWaterData()
+    numAll, numNASA = numCrew()
+    consumablesNASA, filler = calculateCurrentRate()
+    consumablesEveryone = calculateActualRate()
 
-test('2022-03-03','2023-01-01')
-test2('2022-03-03','2023-01-01')
+    water = water.set_index('datedim').resample('D').ffill().reset_index()
+    oxygen = oxygen.set_index('datedim').resample('D').ffill().reset_index()
+    nitrogen = nitrogen.set_index('datedim').resample('D').ffill().reset_index()
+
+    datesOfFlights = getDropDates()
+    datesOfFlights['resupply'] = 'True' 
+
+    threshold = pd.read_csv(csvPath + 'thresholdsLimits.csv')
+    threshold = threshold.copy(deep=True)
+    threshold.drop(threshold[threshold['threshold_owner'] == 'RSOS'].index, inplace = True)
+    threshold['actual_loss'] = threshold.apply(applySafetyFactor, axis=1)
+
+    # gets start date to datetime and also gets enddate by adding 2 years to start date
+    startDate = datetime.strptime(startDate, '%Y-%m-%d')
+    endDate = startDate + relativedelta(years=2)
+
+    datesOfFlights.drop(datesOfFlights[datesOfFlights['datedim'] < startDate].index, inplace = True)
+    datesOfFlights.drop(datesOfFlights[datesOfFlights['datedim'] > endDate].index, inplace = True)
+    oxygen.drop(oxygen[oxygen['datedim'] < startDate].index, inplace=True)
+    oxygen.drop(oxygen[oxygen['datedim'] > endDate].index, inplace=True)
+    nitrogen.drop(nitrogen[nitrogen['datedim'] < startDate].index, inplace=True)
+    nitrogen.drop(nitrogen[nitrogen['datedim'] > endDate].index, inplace=True)
+    water.drop(water[water['datedim'] < startDate].index, inplace=True)
+    water.drop(water[water['datedim'] > endDate].index, inplace=True)
+    numAll.drop(numAll[numAll['datedim'] < startDate].index, inplace = True)
+    numAll.drop(numAll[numAll['datedim'] > endDate].index, inplace = True)
+    numAll = numAll.reset_index()
+    numNASA.drop(numNASA[numNASA['datedim'] < startDate].index, inplace = True)
+    numNASA.drop(numNASA[numNASA['datedim'] > endDate].index, inplace = True)
+    numNASA = numNASA.reset_index()
+
+    result['datedim'] = pd.date_range(start = startDate, end = endDate)
+    result["datedim"] = pd.to_datetime(result['datedim'])
+
+    result = pd.merge(result, datesOfFlights, on='datedim', how='left')
+    result = result.fillna('False')
+
+    result['crew_everyone'] = numAll['crew_count']
+    result['crew_nasa'] = numNASA['crew_count']
+
+    result['threshold_oxygen'] = threshold[threshold['threshold_category'] == 'O2 (Oxygen)']['actual_loss'].values[0] * 0.45359237 # lbs to kG
+    result['threshold_water'] = threshold[threshold['threshold_category'] == 'Water Alert']['actual_loss'].values[0]
+    result['threshold_nitrogen'] = threshold[threshold['threshold_category'] == 'N2 (Nitrogen)']['actual_loss'].values[0] * 0.45359237 # lbs to kG
+
+    result['generation_oxygen'] = consumablesEveryone[consumablesEveryone['affected_consumable'] == 'Oxygen']["generation"].values[0]
+    result['generation_water'] = (consumablesEveryone[consumablesEveryone['affected_consumable'] == 'Water']["generation"].values[0] / 2) # maybe need to change this
+    result['generation_nitrogen'] = consumablesEveryone[consumablesEveryone['affected_consumable'] == 'Nitrogen']["generation"].values[0]
+
+    result['rate_crew_oxygen'] = consumablesEveryone[consumablesEveryone['affected_consumable'] == 'Oxygen']["rate_per_crew/day"].values[0]
+    result['rate_crew_water'] = consumablesEveryone[consumablesEveryone['affected_consumable'] == 'Water']["rate_per_crew/day"].values[0]
+    result['rate_crew_nitrogen'] = consumablesEveryone[consumablesEveryone['affected_consumable'] == 'Nitrogen']["rate_per_crew/day"].values[0]
+
+    result['rate_day_oxygen'] = consumablesEveryone[consumablesEveryone['affected_consumable'] == 'Oxygen']["rate_per_day"].values[0]
+    result['rate_day_water'] = consumablesEveryone[consumablesEveryone['affected_consumable'] == 'Water']["rate_per_day"].values[0]
+    result['rate_day_nitrogen'] = consumablesEveryone[consumablesEveryone['affected_consumable'] == 'Nitrogen']["rate_per_day"].values[0]
+
+    result['actual_rate_loss_oxygen'] = result.apply(calcRate1, axis=1, day = 'rate_day_oxygen', crew = 'rate_crew_oxygen', generation = 'generation_oxygen')
+    result['actual_rate_loss_nitrogen'] = result.apply(calcRate1, axis=1, day = 'rate_day_nitrogen', crew = 'rate_day_nitrogen', generation = 'rate_day_nitrogen')
+    result['actual_rate_loss_water'] = result.apply(calcWaterRate1, axis=1, day = 'rate_day_water', crew = 'rate_crew_water', generation = 'generation_water')
+
+    result['total_oxygen'] = iteration(result,oxygen[oxygen['datedim'] == startDate]["total"].values[0],"actual_rate_loss_oxygen")
+    result['total_nitrogen'] = iteration(result,nitrogen[nitrogen['datedim'] == startDate]["total"].values[0],"actual_rate_loss_nitrogen")
+    result['total_water'] = iteration(result,water[water['datedim'] == startDate]["total"].values[0],"actual_rate_loss_water")
+
+    result.drop(result[result['resupply'] == 'False'].index, inplace=True)
+    result['temp'] = result['datedim'].shift(-1)
+    result['days_between_mission'] = (result['temp'] - result['datedim']).dt.days
+    result.drop(['temp'],axis = 1,inplace=True)
+    result = result.reset_index()
+
+    result['period_loss_oxygen'] = result['total_oxygen'] - result['total_oxygen'].shift(-1).fillna(0)
+    result['period_loss_nitrogen'] = result['total_nitrogen'] - result['total_nitrogen'].shift(-1).fillna(0)
+    result['period_loss_water'] = result['total_water'] - result['total_water'].shift(-1).fillna(0)
+
+    result['resupply_needed_oxygen'] , result['current_oxygen'] = calculateResupply(result,"threshold_oxygen","total_oxygen")
+    result['resupply_needed_nitrogen'] , result['current_nitrogen'] = calculateResupply(result,"threshold_nitrogen","total_nitrogen")
+    result['resupply_needed_water'], result['current_water'] = calculateResupply(result,"threshold_water","total_water")
+
+    finalOxygen = result[['datedim','resupply_needed_oxygen','current_oxygen']]
+    finalNitrogen = result[['datedim','resupply_needed_nitrogen','current_nitrogen']]
+    finalWater = result[['datedim','resupply_needed_water','current_water']]
+
+    path = os.getcwd() + "\\prediction\\question2\\"
+
+    finalOxygen.to_csv(path + 'resultOxygen.csv')
+    finalNitrogen.to_csv(path + 'resultNitrogen.csv')
+    finalWater.to_csv(path + 'resultWater.csv')
+
+    return result
+
+def calcRate1(row,day,crew,generation):
+    return row[day] + (row[crew] * row['crew_everyone']) - row[generation]
+
+def calcWaterRate1(row,day,crew,generation):
+    return row[day] + (row[crew] * row['crew_nasa']) - row[generation]
+
+# test('2022-03-03','2023-01-01')
+# test2('2022-03-03','2023-01-01')
+question2('2022-10-19')
+question2a('2023-06-06')
 
