@@ -14,3 +14,5 @@ O2 (Oxygen),402,,lbs
 N2 (Nitrogen),275,,lbs
 Water Alert,1088,USOS,Liters
 Water Critical,818,USOS,Liters
+Food,160,USOS,BOB
+Food,21.6,RSOS,BOB
