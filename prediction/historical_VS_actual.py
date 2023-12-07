@@ -12,6 +12,14 @@ def getDropDates(): # this is done
     data = pd.read_csv(csvPath + 'issFlightPlan.csv') # change this to where the data is going to be imported
     data = data.copy(deep=True) # copies the data
     data.drop(data[data['event'] != "Dock"].index, inplace = True) # drops rows that does not have Dock in their event column
+    words = ['NG', 'SpX', 'Progress', 'Ax', 'HTV-X']
+
+    # Create a boolean mask where True indicates the rows to be dropped
+    mask = data['vehicle_name'].str.contains('|'.join(words))
+
+    # keep rows that contain the words
+    data = data[mask]
+
     data = data[["datedim"]] # gets just the datedim colun and puts it into data
     data["datedim"] = pd.to_datetime(data['datedim']) # turns datedim column to an actual datedim variable to be easily comparable in the next couple of commands
     data.reset_index(drop=True) # resets the index just in case
@@ -767,10 +775,12 @@ def question4():
     maxes = maxes.drop(columns='sum')
     maxes = maxes.apply(pd.Series.nlargest, n=5).unstack().dropna()
     maxes = pd.DataFrame(maxes)
+    
     maxes.rename(columns={0: 'Total'}, inplace=True)
-
-    maxes.sort_values('Total',ascending=False)
-    q4.rename(columns={33: 'Total'}, inplace=True)
+    maxes.sort_values('Total',ascending=False, inplace=True)
+    
+    q4.rename({'sum': 'Total Cargo Needed(kg)'}, inplace=True)
+    q4.rename(columns={17: 'Total'}, inplace=True)
 
     path = os.getcwd() + "\\prediction\\predictionsCSV\\"
 
@@ -778,10 +788,11 @@ def question4():
     maxes.to_csv(path + 'predictionTop5.csv')
 
     return
-    
+  
 # test('2022-03-03','2023-01-01')
 # test2('2022-03-03','2023-01-01')
 #question2('2023-08-25')
 #question2a('2023-08-25')
 question4()
+
 

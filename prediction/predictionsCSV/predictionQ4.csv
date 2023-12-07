@@ -1,11 +1,11 @@
 ,Total
-datedim,2025-06-16 00:00:00
-resupply_needed_water,761.1200000000063
-resupply_needed_oxygen,567.0839999999844
-resupply_needed_nitrogen,218.2180500000004
+datedim,2025-02-26 00:00:00
+resupply_needed_water,1426.3900000000167
+resupply_needed_oxygen,872.7199999999812
+resupply_needed_nitrogen,386.9733419999977
 resupply_needed_pretreat,0.0
 resupply_needed_kto,0.0
 resupply_needed_food_us,0.0
 resupply_needed_filter,0.0
-resupply_needed_acy,324.9999999999964
-sum,1871.4220499999874
+resupply_needed_acy,599.2999999999806
+Total Cargo Needed(kg),3285.383341999976
