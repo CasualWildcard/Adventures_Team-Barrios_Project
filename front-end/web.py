@@ -157,13 +157,12 @@ def verifyDateRange(startDate, endDate):
     return viewAnalysisError
 
 def plot(df):
-    plt.figure(figsize=(10, 6))
+    plot = plt.figure(figsize=(10, 6))
     plt.plot(df['start_date'], df['rates'])
     plt.xlabel('Date')
     plt.ylabel('Rate')
     plt.title('Rate over Time')
-    plt.savefig('plot.png')
-    return 'plot.png'
+    return plot
 
 def loadAnalyses(startDate, endDate, aCategoryDropdown, dataDropdown):
     # Load the data
@@ -175,7 +174,7 @@ def loadAnalyses(startDate, endDate, aCategoryDropdown, dataDropdown):
     df['end_date'] = pd.to_datetime(df['end_date'])
 
     if aCategoryDropdown == "Historical Assumptions VS Actual Usage":
-        displayRate = gr.Image(value=plot(df), visible = True)
+        displayRate = gr.Plot(value=plot(df), visible = True)
     
     elif aCategoryDropdown == "Resupply Quantity Required":
         displayRate = gr.DataFrame(value=pd.read_csv("prediction/predictionsCSV/" + dataDropdown), visible = True)
@@ -234,12 +233,12 @@ def importCSV(csvdata):
 with gr.Blocks(theme=theme, title="Adventures") as mockup:
     with gr.Tab("Homepage"):
         homepage = gr.Label(value="Homepage")
-        wiki = gr.Button(value="Link to Wiki", link="https://github.com/CasualWildcard/Adventures_Team-Barrios_Project")
+        wiki = gr.Button(value="Link to Wiki", link="https://github.com/CasualWildcard/Adventures_Team-Barrios_Project/wiki")
     with gr.Tab("Imports"):
         homepage = gr.Label(value="Upload CSV Files")
         # warningLabel = gr.Label(value = "Need to Submit all the CSV's Needed below!", scale=5)
         with gr.Row():
-            csv1 = gr.Interface(importCSV, gr.File(file_types = [".csv"], file_count = "multiple", label = "Tank Capacity"), "text", allow_flagging='never')
+            csv1 = gr.Interface(importCSV, gr.File(file_types = [".csv"], file_count = "multiple", label = "Insert Any Data File Here"), "text", allow_flagging='never')
         with gr.Row():
             downloadDropdown = gr.Dropdown(interactive=True, choices = ['tankCapacity',
                                                       'issFlightPlan',
@@ -332,7 +331,7 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
             #                                                                          "resupplyQuantityPretreat.csv",
             #                                                                          "resupplyQuantityFoodUS.csv"])
         with gr.Row():    
-            displayRate = gr.Image(value="plot.png", visible = False)
+            displayRate = gr.Plot(visible = False)
         confirmButton = gr.Button(value="Confirm", show_label=False,visible=False)
         viewAnalysisError = gr.Label(value="", show_label=False)
         aCategoryDropdown.input(fn=displayAnalysisDateRange, inputs=[aCategoryDropdown], outputs=[dataDropdown, startDateCategoryDropdown,endDateCategoryDropdown, confirmButton])
