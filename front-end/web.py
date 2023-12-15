@@ -50,75 +50,6 @@ theme = gr.themes.Base(
 def test(a):
     return
 
-#Manage Database catergory can be renamed
-def updateColumns(category):
-    buttonChange = gr.Button(visible=True)
-    if "Tank Capacity" == category:
-        firstColumn=gr.Textbox(interactive=True, visible=True, label="Tank Category")
-        secondColumn=gr.Textbox(interactive=True, visible=True, label="Tank Capacity")
-        thirdColumn=gr.Textbox(interactive=True, visible=True, label="Units")
-        fourthColumn = gr.Textbox(interactive=True, visible=False)
-        fifthColumn = gr.Textbox(interactive=True, visible=False)
-        sixthColumn = gr.Textbox(interactive=True, visible=False)
-        seventhColumn = gr.Textbox(interactive=True, visible=False)
-    elif "ISS Flight Plan" == category:
-        firstColumn=gr.Textbox(interactive=True, visible=True, label="Event Name")
-        secondColumn=gr.Textbox(interactive=True, visible=True, label="Port Name")
-        thirdColumn=gr.Textbox(interactive=True, visible=True, label="Vehicle Type")
-        fourthColumn = gr.Textbox(interactive=True, visible=True, label="Date")
-        fifthColumn = gr.Textbox(interactive=True, visible=True, label="Eva Type")
-        sixthColumn = gr.Textbox(interactive=True, visible=True, label="Eva Accuracy")
-        seventhColumn = gr.Textbox(interactive=True, visible=True, label="Event")
-    elif "ISS Flight Plan Crew Nationality Lookup" == category:
-        firstColumn=gr.Textbox(interactive=True, visible=True, label="Nationality")
-        secondColumn=gr.Textbox(interactive=True, visible=True, label="USOS Crew")
-        thirdColumn=gr.Textbox(interactive=True, visible=True, label="RSA Crew")
-        fourthColumn = gr.Textbox(interactive=True, visible=False)
-        fifthColumn = gr.Textbox(interactive=True, visible=False)
-        sixthColumn = gr.Textbox(interactive=True, visible=False)
-        seventhColumn = gr.Textbox(interactive=True, visible=False)
-    elif "Rates Definition" == category:
-        firstColumn=gr.Textbox(interactive=True, visible=True, label="Rate Category")
-        secondColumn=gr.Textbox(interactive=True, visible=True, label="Type")
-        thirdColumn=gr.Textbox(interactive=True, visible=True, label="Affected Consumable")
-        fourthColumn = gr.Textbox(interactive=True, visible=True, label="Rate")
-        fifthColumn = gr.Textbox(interactive=True, visible=True, label="Units")
-        sixthColumn = gr.Textbox(interactive=True, visible=True, label="Efficiency")
-        seventhColumn = gr.Textbox(interactive=True, visible=False)
-    elif "US Weekly Consumable Water Summary" == category:
-        firstColumn=gr.Textbox(interactive=True, visible=True, label="Date")
-        secondColumn=gr.Textbox(interactive=True, visible=True, label="Corrected Potable")
-        thirdColumn=gr.Textbox(interactive=True, visible=True, label="Corrected Technical")
-        fourthColumn = gr.Textbox(interactive=True, visible=True, label="Corrected Total")
-        fifthColumn = gr.Textbox(interactive=True, visible=True, label="Resupply Potable")
-        sixthColumn = gr.Textbox(interactive=True, visible=True, label="Resupply Technical")
-        seventhColumn = gr.Textbox(interactive=True, visible=True, label="Corrected Predicted")
-    elif "IMS Consumables" == category:
-        firstColumn=gr.Textbox(interactive=True, visible=True, label="Category Name")
-        secondColumn=gr.Textbox(interactive=True, visible=True, label="Category ID")
-        thirdColumn=gr.Textbox(interactive=True, visible=True, label="Module Name")
-        fourthColumn = gr.Textbox(interactive=True, visible=True, label="Module ID")
-        fifthColumn = gr.Textbox(interactive=True, visible=True, label="Unique Cat Mod ID")
-        sixthColumn = gr.Textbox(interactive=True, visible=False)
-        seventhColumn = gr.Textbox(interactive=True, visible=False)
-    elif "Thresholds/Limits" == category:
-        firstColumn=gr.Textbox(interactive=True, visible=True, label="Threshold Category")
-        secondColumn=gr.Textbox(interactive=True, visible=True, label="Threshold Value")
-        thirdColumn=gr.Textbox(interactive=True, visible=True, label="Threshold Owner")
-        fourthColumn = gr.Textbox(interactive=True, visible=True, label="Units")
-        fifthColumn = gr.Textbox(interactive=True, visible=False)
-        sixthColumn = gr.Textbox(interactive=True, visible=False)
-        seventhColumn = gr.Textbox(interactive=True, visible=False)
-    elif "RS Weekly Consumable Water Summary" == category:
-        firstColumn=gr.Textbox(interactive=True, visible=True, label="Report Date")
-        secondColumn=gr.Textbox(interactive=True, visible=True, label="Remain. Potable(Liters)")
-        thirdColumn=gr.Textbox(interactive=True, visible=True, label="Rmain Technical(Liters)")
-        fourthColumn = gr.Textbox(interactive=True, visible=True, label="Remain Rodnik(Liters)")
-        fifthColumn = gr.Textbox(interactive=True, visible=False)
-        sixthColumn = gr.Textbox(interactive=True, visible=False)
-        seventhColumn = gr.Textbox(interactive=True, visible=False)
-    return(buttonChange,firstColumn,secondColumn,thirdColumn,fourthColumn,fifthColumn,sixthColumn,seventhColumn)
-
 def displayAnalysisDateRange(aCategoryDropdown):
     table = gr.DataFrame(visible = False)
     confirmDateButton = gr.Button(value="Confirm", show_label=False,visible=False)
@@ -235,14 +166,6 @@ def loadAnalyses(startDate, endDate, aCategoryDropdown, dataDropdown):
     else:
         return displayRate, verifyDateRange(startDate, startDate)
 
-#does authentication with the login cookies must be enabled in your browser to make this happen
-def authentication(username,password):
-    auth_usernames = "test"
-    auth_passwords = "test"
-    if username == auth_usernames and password == auth_passwords:
-        return True
-    return False
-
 def openFile(fileName):
     viewDownloadError = gr.Label(value="", show_label=False)
     try:
@@ -333,4 +256,4 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
         aCategoryDropdown.input(fn=displayAnalysisDateRange, inputs=[aCategoryDropdown], outputs=[dataDropdown, startDateCategoryDropdown,endDateCategoryDropdown, confirmButton, displayTable, displayRate])
         confirmButton.click(fn=loadAnalyses, inputs=[startDateCategoryDropdown, endDateCategoryDropdown, aCategoryDropdown, dataDropdown], outputs=[displayRate, viewAnalysisError])
 
-mockup.launch(share=True)#to turn off authentication just delete the auth part :)
+mockup.launch(share=True)
