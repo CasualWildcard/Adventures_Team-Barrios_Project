@@ -1,3 +1,3 @@
-cd "C:\Program Files\AdventuresTeamBarrios"
-& %USERDIRECTORY%/AppData/Local/Programs/Python/Python311/python.exe "C:\Program Files\AdventuresTeamBarrios\front-end\web.py"
+cd "C:\Program Files\AdventureTeamBarrios"
+%USERPROFILE%/AppData/Local/Programs/Python/Python311/python.exe "C:\Program Files\AdventureTeamBarrios\front-end\web.py"
 pause

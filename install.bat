@@ -36,9 +36,9 @@ mkdir "C:\Program Files\AdventureTeamBarrios"
 xcopy /s /i %CD%\* "C:\Program Files\AdventureTeamBarrios"
 
 echo Set oWS = WScript.CreateObject("WScript.Shell") > CreateShortcut.vbs
-echo sLinkFile = "C:\Users\Public\Desktop\MyShortcut.lnk" >> CreateShortcut.vbs
+echo sLinkFile = "C:\Users\Public\Desktop\Barrios Predictions.lnk" >> CreateShortcut.vbs
 echo Set oLink = oWS.CreateShortcut(sLinkFile) >> CreateShortcut.vbs
-echo oLink.TargetPath = "C:\Program Files\AdventureTeamBarrios\front-end\web.py" >> CreateShortcut.vbs
+echo oLink.TargetPath = "C:\Program Files\AdventureTeamBarrios\runMe.bat" >> CreateShortcut.vbs
 echo oLink.Save >> CreateShortcut.vbs
 
 cscript CreateShortcut.vbs
