@@ -208,7 +208,7 @@ def calculateActualRate():
     return actual
 
     
-def test2(startDate,endDate): # question 1 for oxygen nitrogen and water
+def Q1Shared(startDate,endDate): # question 1 for oxygen nitrogen and water
     numAll, numNASA = numCrew()
     consumablesEveryone = calculateActualRate()
     oxygen, nitrogen= getOxygenNitrogen()
@@ -365,7 +365,7 @@ def subractRows1(row):
     return row['total'] - row['total1']   
   
   
-def test(startDate,endDate): # question 1 but for the consumables
+def Q1Consumables(startDate,endDate): # question 1 but for the consumables
     numAll, numNASA = numCrew()
     consumablesNASA, consumablesEveryone = calculateCurrentRate()
     filterInsert,kto,pretreat,foodUS,acyInserts = compareRates()
@@ -489,7 +489,7 @@ def devByCrew(row):
 def subractRows(row):
     return row['quantity'] - row['quantity1'] 
 
-def question2(startDate): # question 2 for consumables
+def Q2Consumables(startDate): # question 2 for consumables
     result = pd.DataFrame()
     filterInsert,kto,pretreat,foodUS,acyInserts = compareRates()
     numAll, numNASA = numCrew()
@@ -638,7 +638,7 @@ def multByCrew1(row,rate):
 def applySafetyFactor(row):
     return (row['threshold_value'] * 0.10) + row['threshold_value']
 
-def question2a(startDate): # question 2 water, nitrogen and oxygen does the same thing but with minor differences
+def Q2Shared(startDate): # question 2 water, nitrogen and oxygen does the same thing but with minor differences
     result = pd.DataFrame()
     oxygen, nitrogen= getOxygenNitrogen()
     water = getFilledWaterData()
@@ -743,7 +743,7 @@ def calcRate1(row,day,crew,generation):
 def calcWaterRate1(row,day,crew,generation):
     return row[day] + (row[crew] * row['crew_nasa']) - row[generation]
 
-def question4():
+def Q3Q4():
     path = (os.getcwd() +"/prediction/predictionsCSV/")
 
     # Load various CSV files related to different consumables into dataframes.
@@ -813,8 +813,8 @@ def question4():
 
     return
   
-test('2022-03-03','2023-01-01')
-test2('2022-03-03','2023-01-01')
-question2('2023-08-25')
-question2a('2023-08-25')
-question4()
+Q1Consumables('2022-11-27','2023-02-11')
+Q1Shared('2022-11-27','2023-02-11')
+Q2Consumables('2023-08-25')
+Q2Shared('2023-08-25')
+Q3Q4()
