@@ -120,6 +120,12 @@ def updateColumns(category):
     return(buttonChange,firstColumn,secondColumn,thirdColumn,fourthColumn,fifthColumn,sixthColumn,seventhColumn)
 
 def displayAnalysisDateRange(aCategoryDropdown):
+    table = gr.DataFrame(visible = False)
+    confirmDateButton = gr.Button(value="Confirm", show_label=False,visible=False)
+    dataDropdown = gr.Dropdown(interactive=True, label="Which Threshold Violation", visible=False, choices= [])
+    startDateCategoryDropdown = gr.Dropdown(interactive=True, visible=False, choices = availableDates)
+    endDateCategoryDropdown = gr.Dropdown(interactive=True, visible=False, choices = availableDates)
+
     if aCategoryDropdown == "Historical Assumptions VS Actual Usage":
         dataDropdown = gr.Dropdown(interactive=True, label="Which Usage Rate", visible=True, choices= ["usageRateWater.csv",
                                                                                                             "usageRateNitrogen.csv",
@@ -127,26 +133,30 @@ def displayAnalysisDateRange(aCategoryDropdown):
                                                                                                             "usageRateFilterInsert.csv",
                                                                                                             "usageRateKTO.csv",
                                                                                                             "usageRatePretreat.csv",
-                                                                                                            "usageRateFoodUS.csv"])
-        startDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
-        endDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
+                                                                                                            "usageRateFoodUS.csv",
+                                                                                                            "usageRateACY.csv"])
+        confirmDateButton = gr.Button(value="Confirm", show_label=False,visible=True)
 
     elif aCategoryDropdown == "Resupply Quantity Required":
-        dataDropdown = gr.Dropdown(interactive=True, label="Which Resupply Quantity", visible=True, choices= ["resupplyQuantityWater.csv",
-                                                                                                            "resupplyQuantityNitrogen.csv",
-                                                                                                            "resupplyQuantityOxygen.csv",
-                                                                                                            "resupplyQuantityFilterInsert.csv",
-                                                                                                            "resupplyQuantityKTO.csv",
-                                                                                                            "resupplyQuantityPretreat.csv",
-                                                                                                            "resupplyQuantityFoodUS.csv"])
-        startDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
-        endDateCategoryDropdown = gr.Dropdown(interactive=True, visible=False, choices = availableDates)
+        dataDropdown = gr.Dropdown(interactive=True, label="Which Resupply Quantity", visible=True, choices= ["resultWater.csv",
+                                                                                                            "resultNitrogen.csv",
+                                                                                                            "resultOxygen.csv",
+                                                                                                            "finalFilter.csv",
+                                                                                                            "finalKTO.csv",
+                                                                                                            "finalPretreat.csv",
+                                                                                                            "finalFoodUS.csv",
+                                                                                                            "finalACY.csv"])
+        confirmDateButton = gr.Button(value="Confirm", show_label=False,visible=True)
     
-    else:
-        startDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
-        endDateCategoryDropdown = gr.Dropdown(interactive=True, visible=True, choices = availableDates)
-    confirmDateButton = gr.Button(value="Confirm", show_label=False,visible=True)
-    return dataDropdown, startDateCategoryDropdown, endDateCategoryDropdown, confirmDateButton
+    elif aCategoryDropdown == "Minimum Supply Violation":
+        df = pd.read_csv("prediction/predictionsCSV/predictionQ4.csv")
+        table = gr.DataFrame(value = df, visible = True)
+    
+    elif aCategoryDropdown == "Likely Threshold Violating Items":
+        df = pd.read_csv("prediction/predictionsCSV/predictionTop5.csv")
+        table = gr.DataFrame(value = df, visible = True)
+    
+    return dataDropdown, startDateCategoryDropdown, endDateCategoryDropdown, confirmDateButton, table, displayRate
 
 def verifyDateRange(startDate, endDate):
     viewAnalysisError = gr.Label(value="", show_label=False)
@@ -157,6 +167,9 @@ def verifyDateRange(startDate, endDate):
     elif startDate == [] or endDate == []:
         viewAnalysisError = gr.Label(value="Error: One or both date values are empty.", show_label=False)
     return viewAnalysisError
+
+def runAnalysisFun():
+    os.system("python prediction/historical_VS_actual.py")
 
 def loadAnalyses(startDate, endDate, aCategoryDropdown, dataDropdown):
     
@@ -184,12 +197,39 @@ def loadAnalyses(startDate, endDate, aCategoryDropdown, dataDropdown):
         displayRate = gr.Plot(value=fig, visible = True)
     
     elif aCategoryDropdown == "Resupply Quantity Required":
-        displayRate = gr.DataFrame(value=pd.read_csv("prediction/predictionsCSV/" + dataDropdown), visible = True)
+        whichResupplyQuantity = ""
+        if dataDropdown == "resultWater.csv":
+            whichResupplyQuantity = "water"
+        elif dataDropdown == "resultNitrogen.csv":
+            whichResupplyQuantity = "nitrogen"
+        elif dataDropdown == "resultOxygen.csv":
+            whichResupplyQuantity = "oxygen"
+        elif dataDropdown == "finalFilter.csv":
+            whichResupplyQuantity = "filter"
+        elif dataDropdown == "finalKTO.csv":
+            whichResupplyQuantity = "kto"
+        elif dataDropdown == "finalPretreat.csv":
+            whichResupplyQuantity = "pretreat"
+        elif dataDropdown == "finalFoodUS.csv":
+            whichResupplyQuantity = "food_us"
+        elif dataDropdown == "finalACY.csv":
+            whichResupplyQuantity = "acy"
         
-    #elif aCategoryDropdown == "Minimum Launch Vehicle Resupply Plan":
+        df = pd.read_csv("prediction/predictionsCSV/" + dataDropdown)
+        df = df.iloc[:-1]
 
-    #elif aCategoryDropdown == "Minimun Supply Violation":
-    
+        fig = go.Figure()
+
+        fig.add_trace(go.Scatter(x=df['datedim'], y=df['resupply_needed_' + whichResupplyQuantity], mode='lines', name='Resupply Quantity Required'))
+        fig.add_trace(go.Scatter(x=df['datedim'], y=df['current_' + whichResupplyQuantity], mode='lines', name='Current In Storage'))
+
+        fig.update_layout(title='Resupply Quantity Required vs Current In Storage', xaxis_title='Date', yaxis_title='Quantity')
+
+        displayRate = gr.Plot(value=fig, visible = True)
+
+    else:
+        displayRate = gr.Plot(visible = False)
+
     if(endDate != 0):
         return displayRate, verifyDateRange(startDate, endDate)
     else:
@@ -248,6 +288,9 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
         with gr.Row():
             csv1 = gr.Interface(importCSV, gr.File(file_types = [".csv"], file_count = "multiple", label = "Insert Any Data File Here"), "text", allow_flagging='never')
         with gr.Row():
+            runAnalysis = gr.Button(value="Run Analysis", show_label=False,visible=True)
+            runAnalysis.click(fn=runAnalysisFun, inputs=[], outputs=[])
+        with gr.Row():
             downloadDropdown = gr.Dropdown(interactive=True, choices = ['tankCapacity',
                                                       'issFlightPlan',
                                                       'crewNationalityLookup',
@@ -264,63 +307,12 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
             downloadButton = gr.Button(value="Edit in Excel", show_label=False, visible=True)
             downloadButton.click(fn=openFile, inputs=[downloadDropdown], outputs=[viewDownloadError])
 
-    with gr.Tab("Manage Database"):
-        manage = gr.Label(value="Manage Database")
-        mdCategoryDropdown = gr.Dropdown(choices = ["Tank Capacity", "US/RS Weekly Consumable Gas Summary", 
-                                                    "US Weekly Consumable Water Summary",
-                                                    "RS Weekly Consumable Water Summary", 
-                                                    "IMS Consumables", "ISS Flight Plan Crew",
-                                                    "Rates Definition", "Thresholds/Limits",
-                                                    "ISS Flight Plan Crew Nationality Lookup", 
-                                                    "Inventory Management System Consumables",
-                                                    "ISS Flight Plan", 
-                                                    "Stored Items Only Inventory Management System Consumables"])
-        with gr.Row():# more can be added
-            addButton = gr.Button(value="Add", show_label=False,visible=False)
-            addFirstColumn = gr.Textbox(interactive=True, visible=False)
-            addSecondColumn = gr.Textbox(interactive=True, visible=False)
-            addThirdColumn = gr.Textbox(interactive=True, visible=False)
-            addFourthColumn = gr.Textbox(interactive=True, visible=False)
-            addFifthColumn = gr.Textbox(interactive=True, visible=False)
-            addSixthColumn = gr.Textbox(interactive=True, visible=False)
-            addSeventhColumn = gr.Textbox(interactive=True, visible=False)
-            # gr.Interface(fn=test, inputs=[addFirstColumn,addSecondColumn,addThirdColumn,addFourthColumn,addFifthColumn,addSixthColumn,addSeventhColumn], outputs=asd, allow_flagging="never",title="Add Data to Database")
-            mdCategoryDropdown.input(fn=updateColumns, inputs=[mdCategoryDropdown],
-                                    outputs=[addButton,addFirstColumn,addSecondColumn,addThirdColumn,
-                                            addFourthColumn,addFifthColumn,addSixthColumn,
-                                             addSeventhColumn])
-        with gr.Row():
-            removeButton = gr.Button(value="Remove", show_label=False,visible=False)
-            removeFirstColumn = gr.Textbox(interactive=True, visible=False)
-            removeSecondColumn = gr.Textbox(interactive=True, visible=False)
-            removeThirdColumn = gr.Textbox(interactive=True, visible=False)
-            removeFourthColumn = gr.Textbox(interactive=True, visible=False)
-            removeFifthColumn = gr.Textbox(interactive=True, visible=False)
-            removeSixthColumn = gr.Textbox(interactive=True, visible=False)
-            removeSeventhColumn = gr.Textbox(interactive=True, visible=False)
-            mdCategoryDropdown.input(fn=updateColumns, inputs=[mdCategoryDropdown],
-                                      outputs=[removeButton,removeFirstColumn,removeSecondColumn,removeThirdColumn
-                                               ,removeFourthColumn,removeFifthColumn,removeSixthColumn
-                                               ,removeSeventhColumn])
-        with gr.Row():
-            modifyButton = gr.Button(value="Modify", show_label=False,visible=False)
-            modifyFirstColumn = gr.Textbox(interactive=True, visible=False)
-            modifySecondColumn = gr.Textbox(interactive=True, visible=False)
-            modifyThirdColumn = gr.Textbox(interactive=True, visible=False)
-            modifyFourthColumn = gr.Textbox(interactive=True, visible=False)
-            modifyFifthColumn = gr.Textbox(interactive=True, visible=False)
-            modifySixthColumn = gr.Textbox(interactive=True, visible=False)
-            modifySeventhColumn = gr.Textbox(interactive=True, visible=False)
-            mdCategoryDropdown.input(fn=updateColumns, inputs=[mdCategoryDropdown],
-                                      outputs=[modifyButton,modifyFirstColumn,modifySecondColumn,modifyThirdColumn,
-                                               modifyFourthColumn,modifyFifthColumn,modifySixthColumn,
-                                               modifySeventhColumn])
     with gr.Tab("View Analyses"):
         view = gr.Label(value="View Analyses")
         aCategoryDropdown = gr.Dropdown(interactive= True,choices = ["Historical Assumptions VS Actual Usage", 
                                                                      "Resupply Quantity Required",
-                                                                       "Minimum Launch Vehicle Resupply Plan",
-                                                                         "Minimun Supply Violation"])
+                                                                     "Minimum Supply Violation",
+                                                                     "Likely Threshold Violating Items"])
         with gr.Row():
             startDateCategoryDropdown = gr.Dropdown(interactive=True, label="Start Date", visible=False, choices = availableDates)
             endDateCategoryDropdown = gr.Dropdown(interactive=True, label="End Date", visible=False, choices = availableDates)
@@ -332,18 +324,13 @@ with gr.Blocks(theme=theme, title="Adventures") as mockup:
                                                                                       "usageRatePretreat.csv",
                                                                                       "usageRateFoodUS.csv",
                                                                                       "usageRateACY.csv"])
-            #dataDropdown = gr.Dropdown(interactive=True, label="Which Resupply Quantity", visible=False, choices= ["resupplyQuantityWater.csv",
-            #                                                                          "resupplyQuantityNitrogen.csv",
-            #                                                                          "resupplyQuantityOxygen.csv",
-            #                                                                          "resupplyQuantityFilterInsert.csv",
-            #                                                                          "resupplyQuantityKTO.csv",
-            #                                                                          "resupplyQuantityPretreat.csv",
-            #                                                                          "resupplyQuantityFoodUS.csv"])
+            
         with gr.Row():    
             displayRate = gr.Plot(visible = False)
+            displayTable = gr.DataFrame(visible = False)
         confirmButton = gr.Button(value="Confirm", show_label=False,visible=False)
         viewAnalysisError = gr.Label(value="", show_label=False)
-        aCategoryDropdown.input(fn=displayAnalysisDateRange, inputs=[aCategoryDropdown], outputs=[dataDropdown, startDateCategoryDropdown,endDateCategoryDropdown, confirmButton])
+        aCategoryDropdown.input(fn=displayAnalysisDateRange, inputs=[aCategoryDropdown], outputs=[dataDropdown, startDateCategoryDropdown,endDateCategoryDropdown, confirmButton, displayTable, displayRate])
         confirmButton.click(fn=loadAnalyses, inputs=[startDateCategoryDropdown, endDateCategoryDropdown, aCategoryDropdown, dataDropdown], outputs=[displayRate, viewAnalysisError])
 
 mockup.launch(share=True)#to turn off authentication just delete the auth part :)
