@@ -1,10 +1,8 @@
 import os
 import pandas as pd
 import gradio as gr
-import matplotlib.pyplot as plt
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
-import mplcursors
 import plotly.graph_objects as go
 
 CSVHeaders = {
@@ -47,8 +45,6 @@ theme = gr.themes.Base(
     button_primary_text_color_hover='#60a5fa',
     button_secondary_background_fill='#dbeafe'
 )
-def test(a):
-    return
 
 def displayAnalysisDateRange(aCategoryDropdown):
     table = gr.DataFrame(visible = False)
